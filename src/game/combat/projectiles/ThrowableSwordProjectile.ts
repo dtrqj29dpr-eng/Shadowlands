@@ -13,7 +13,9 @@ export interface IHittable {
   takeDamage(amount: number, kbX: number, kbY: number): void;
 }
 
-const SPIN_SPEED = 480; // degrees per second
+const SPIN_SPEED = 480;           // degrees per second
+const DEFLECTION_DURATION_MS = 140;
+const DEFLECTION_STRENGTH    = 0.45;
 
 export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
   private phase: ProjectilePhase = 'IDLE';
@@ -32,6 +34,11 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
 
   // Current homing speed; increases each frame while returning.
   private currentReturnSpeed: number = 0;
+
+  // Deflection on return hit: blend a perpendicular kick into the homing direction.
+  private deflectionTimer: number = 0;
+  private deflectionDirX: number = 0;
+  private deflectionDirY: number = 0;
 
   private getOwnerPos!: () => { x: number; y: number };
   private getOwnerAttributes!: () => PlayerAttributes;
@@ -119,6 +126,7 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
   private beginReturn() {
     this.phase = 'RETURNING';
     this.currentReturnSpeed = this.weapon.returnSpeed;
+    this.deflectionTimer = 0;
     // Clear so each pass (outbound and return) gets an independent hit window.
     this.hitEntities = new Set();
   }
@@ -141,14 +149,26 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
       this.weapon.maxReturnSpeed,
     );
 
-    // Recalculate direction toward player every frame for homing.
-    const angle = Phaser.Math.Angle.Between(this.x, this.y, pos.x, pos.y);
+    // Base homing direction (normalized).
+    const homeDx = pos.x - this.x;
+    const homeDy = pos.y - this.y;
+    const homeLen = Math.sqrt(homeDx * homeDx + homeDy * homeDy);
+    let dirX = homeDx / homeLen;
+    let dirY = homeDy / homeLen;
+
+    // While deflecting, blend the perpendicular kick into the homing direction.
+    if (this.deflectionTimer > 0) {
+      this.deflectionTimer = Math.max(0, this.deflectionTimer - delta);
+      const blendX = dirX + this.deflectionDirX * DEFLECTION_STRENGTH;
+      const blendY = dirY + this.deflectionDirY * DEFLECTION_STRENGTH;
+      const blendLen = Math.sqrt(blendX * blendX + blendY * blendY);
+      dirX = blendX / blendLen;
+      dirY = blendY / blendLen;
+    }
+
     const body = this.body as Phaser.Physics.Arcade.Body;
-    body.setVelocity(
-      Math.cos(angle) * this.currentReturnSpeed,
-      Math.sin(angle) * this.currentReturnSpeed,
-    );
-    this.setRotation(angle);
+    body.setVelocity(dirX * this.currentReturnSpeed, dirY * this.currentReturnSpeed);
+    this.setRotation(Math.atan2(dirY, dirX));
   }
 
   private arrive() {
@@ -189,14 +209,24 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
       Math.sin(angle) * this.weapon.knockback,
     );
 
-    // On the outbound pass, a non-pierce hit triggers the return.
-    // On the return pass, the sword just damages and keeps flying home.
     if (this.phase === 'TRAVELING') {
+      // Outbound: non-pierce hit triggers the return.
       if (this.pierceRemaining <= 0) {
         this.beginReturn();
       } else {
         this.pierceRemaining--;
       }
+    } else {
+      // Returning: glance off the enemy with a small perpendicular deflection.
+      const pos = this.getOwnerPos();
+      const homeDx = pos.x - this.x;
+      const homeDy = pos.y - this.y;
+      const homeLen = Math.sqrt(homeDx * homeDx + homeDy * homeDy);
+      // Perpendicular to homing direction, randomly left or right.
+      const side = Math.random() < 0.5 ? 1 : -1;
+      this.deflectionDirX = (-homeDy / homeLen) * side;
+      this.deflectionDirY = (homeDx / homeLen) * side;
+      this.deflectionTimer = DEFLECTION_DURATION_MS;
     }
   }
 
