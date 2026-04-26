@@ -13,7 +13,7 @@ export interface IHittable {
   takeDamage(amount: number, kbX: number, kbY: number): void;
 }
 
-const SPIN_SPEED = 480;           // degrees per second
+const SPIN_SPEED = 960;           // degrees per second
 const DEFLECTION_DURATION_MS = 140;
 const DEFLECTION_STRENGTH    = 0.45;
 

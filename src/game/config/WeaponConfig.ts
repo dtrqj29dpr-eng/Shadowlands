@@ -24,7 +24,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponDefinition> = {
     returnSpeed: 380,
     returnAcceleration: 900,
     maxReturnSpeed: 1200,
-    maxRange: 350,
+    maxRange: 263,
     catchDistance: 24,
     pierce: 0,
     knockback: 80,
