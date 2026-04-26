@@ -33,8 +33,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     body.setAllowGravity(false);
 
     const r = GAME_CONFIG.player.hitboxRadius;
-    // Center the circular hitbox within the 32×32 sprite.
-    body.setCircle(r, 16 - r, 16 - r);
+    // Center the circular hitbox within the 48×48 sprite.
+    body.setCircle(r, 24 - r, 24 - r);
 
     const kb = scene.input.keyboard!;
     this.cursors = {
