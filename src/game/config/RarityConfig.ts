@@ -1,0 +1,58 @@
+import type { Rarity, RarityDefinition } from '../types/GameTypes';
+
+export const RARITIES: Record<Rarity, RarityDefinition> = {
+  Common: {
+    name: 'Common',
+    displayName: 'Common',
+    color: 0xcccccc,
+    damageMultiplier: 1.0,
+    cooldownMultiplier: 1.0,
+    rangeMultiplier: 1.0,
+    speedMultiplier: 1.0,
+  },
+  Rare: {
+    name: 'Rare',
+    displayName: 'Rare',
+    color: 0x4488ff,
+    damageMultiplier: 1.25,
+    cooldownMultiplier: 0.95,
+    rangeMultiplier: 1.1,
+    speedMultiplier: 1.05,
+  },
+  Epic: {
+    name: 'Epic',
+    displayName: 'Epic',
+    color: 0xaa44ff,
+    damageMultiplier: 1.5,
+    cooldownMultiplier: 0.9,
+    rangeMultiplier: 1.2,
+    speedMultiplier: 1.1,
+  },
+  Legendary: {
+    name: 'Legendary',
+    displayName: 'Legendary',
+    color: 0xff8800,
+    damageMultiplier: 2.0,
+    cooldownMultiplier: 0.8,
+    rangeMultiplier: 1.35,
+    speedMultiplier: 1.2,
+  },
+  Mythic: {
+    name: 'Mythic',
+    displayName: 'Mythic',
+    color: 0xff3333,
+    damageMultiplier: 2.75,
+    cooldownMultiplier: 0.7,
+    rangeMultiplier: 1.5,
+    speedMultiplier: 1.35,
+  },
+  Divine: {
+    name: 'Divine',
+    displayName: 'Divine',
+    color: 0xffee00,
+    damageMultiplier: 4.0,
+    cooldownMultiplier: 0.5,
+    rangeMultiplier: 1.75,
+    speedMultiplier: 1.6,
+  },
+};
