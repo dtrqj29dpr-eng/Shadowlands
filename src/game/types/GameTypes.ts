@@ -16,7 +16,10 @@ export interface WeaponDefinition {
   cooldownMs: number;
   throwSpeed: number;
   returnSpeed: number;
+  returnAcceleration?: number;
+  maxReturnSpeed?: number;
   maxRange: number;
+  catchDistance?: number;
   pierce: number;
   knockback: number;
   description: string;

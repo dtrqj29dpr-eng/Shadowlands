@@ -13,17 +13,26 @@ export interface IHittable {
   takeDamage(amount: number, kbX: number, kbY: number): void;
 }
 
+const SPIN_SPEED = 480; // degrees per second
+
 export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
   private phase: ProjectilePhase = 'IDLE';
   private weapon!: Weapon;
   private slot!: IWeaponSlotCallback;
   private hitEntities: Set<IHittable> = new Set();
   private pierceRemaining: number = 0;
+
+  // Fixed world point the sword travels toward on the outbound arc.
   private travelTargetX: number = 0;
   private travelTargetY: number = 0;
-  private ownerX: number = 0;
-  private ownerY: number = 0;
-  // Reference to get live player position for homing return.
+
+  // Saved outbound direction (normalized). Never recalculated while TRAVELING.
+  private throwDirX: number = 0;
+  private throwDirY: number = 0;
+
+  // Current homing speed; increases each frame while returning.
+  private currentReturnSpeed: number = 0;
+
   private getOwnerPos!: () => { x: number; y: number };
   private getOwnerAttributes!: () => PlayerAttributes;
 
@@ -53,43 +62,55 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
     this.hitEntities = new Set();
   }
 
+  // Called by WeaponSlot AFTER the projectile has been added to the physics group.
+  // The group's createCallbackHandler resets velocity and allowGravity to defaults,
+  // so we re-assert them here.
   launch(targetX: number, targetY: number) {
     const body = this.body as Phaser.Physics.Arcade.Body;
+    body.setAllowGravity(false);
     body.setEnable(true);
 
     const angle = Phaser.Math.Angle.Between(this.x, this.y, targetX, targetY);
+    this.throwDirX = Math.cos(angle);
+    this.throwDirY = Math.sin(angle);
 
-    // The sword travels to a fixed world point (origin + direction × maxRange),
-    // not toward the cursor itself, so it always travels the full arc.
-    this.travelTargetX = this.x + Math.cos(angle) * this.weapon.maxRange;
-    this.travelTargetY = this.y + Math.sin(angle) * this.weapon.maxRange;
+    // Travel toward a fixed world point exactly maxRange away.
+    // This keeps the arc consistent regardless of cursor distance.
+    this.travelTargetX = this.x + this.throwDirX * this.weapon.maxRange;
+    this.travelTargetY = this.y + this.throwDirY * this.weapon.maxRange;
+
+    this.currentReturnSpeed = this.weapon.returnSpeed;
 
     this.setActive(true);
     this.setVisible(true);
     this.phase = 'TRAVELING';
     this.setRotation(angle);
 
+    // Outbound velocity is set once here and never recalculated — physics carries it forward.
     body.setVelocity(
-      Math.cos(angle) * this.weapon.throwSpeed,
-      Math.sin(angle) * this.weapon.throwSpeed,
+      this.throwDirX * this.weapon.throwSpeed,
+      this.throwDirY * this.weapon.throwSpeed,
     );
   }
 
-  update(_time: number, _delta: number) {
+  update(_time: number, delta: number) {
     if (!this.active) return;
 
     if (this.phase === 'TRAVELING') {
-      this.tickTraveling();
+      this.tickTraveling(delta);
     } else if (this.phase === 'RETURNING') {
-      this.tickReturning();
+      this.tickReturning(delta);
     }
   }
 
-  private tickTraveling() {
+  private tickTraveling(delta: number) {
     const dist = Phaser.Math.Distance.Between(
       this.x, this.y, this.travelTargetX, this.travelTargetY,
     );
-    this.angle += 14;
+
+    // Spin forward at a fixed angular rate.
+    this.angle += SPIN_SPEED * (delta / 1000);
+
     if (dist < 18) {
       this.beginReturn();
     }
@@ -97,25 +118,34 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
 
   private beginReturn() {
     this.phase = 'RETURNING';
-    // Do NOT clear hitEntities — the sword shouldn't re-hit on the way back.
+    this.currentReturnSpeed = this.weapon.returnSpeed;
+    // Do NOT clear hitEntities — the sword should not re-damage on the way back.
   }
 
-  private tickReturning() {
+  private tickReturning(delta: number) {
     const pos = this.getOwnerPos();
     const dist = Phaser.Math.Distance.Between(this.x, this.y, pos.x, pos.y);
 
-    this.angle -= 14;
+    // Spin backward while returning.
+    this.angle -= SPIN_SPEED * (delta / 1000);
 
-    if (dist < 22) {
+    if (dist < this.weapon.catchDistance) {
       this.arrive();
       return;
     }
 
+    // Accelerate homing speed each frame so the player cannot outrun the sword forever.
+    this.currentReturnSpeed = Math.min(
+      this.currentReturnSpeed + this.weapon.returnAcceleration * (delta / 1000),
+      this.weapon.maxReturnSpeed,
+    );
+
+    // Recalculate direction toward player every frame for homing.
     const angle = Phaser.Math.Angle.Between(this.x, this.y, pos.x, pos.y);
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setVelocity(
-      Math.cos(angle) * this.weapon.returnSpeed,
-      Math.sin(angle) * this.weapon.returnSpeed,
+      Math.cos(angle) * this.currentReturnSpeed,
+      Math.sin(angle) * this.currentReturnSpeed,
     );
     this.setRotation(angle);
   }
@@ -130,11 +160,6 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
     body.setEnable(false);
 
     this.slot.onProjectileReturned();
-
-    // Remove from group and destroy safely.
-    if (this.parentContainer) {
-      this.parentContainer.remove(this, true);
-    }
     this.destroy();
   }
 
@@ -147,7 +172,11 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
 
     const sprite = enemy as unknown as Phaser.GameObjects.Sprite;
     const angle = Phaser.Math.Angle.Between(ownerX, ownerY, sprite.x, sprite.y);
-    const result = DamageCalculator.calculate(this.weapon.damage, this.getOwnerAttributes(), this.weapon.strength);
+    const result = DamageCalculator.calculate(
+      this.weapon.damage,
+      this.getOwnerAttributes(),
+      this.weapon.strength,
+    );
     enemy.takeDamage(
       result.finalDamage,
       Math.cos(angle) * this.weapon.knockback,

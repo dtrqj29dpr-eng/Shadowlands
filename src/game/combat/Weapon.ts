@@ -13,7 +13,10 @@ export class Weapon {
   readonly cooldownMs: number;
   readonly throwSpeed: number;
   readonly returnSpeed: number;
+  readonly returnAcceleration: number;
+  readonly maxReturnSpeed: number;
   readonly maxRange: number;
+  readonly catchDistance: number;
   readonly pierce: number;
   readonly knockback: number;
   readonly description: string;
@@ -30,7 +33,10 @@ export class Weapon {
     this.cooldownMs = Math.round(def.cooldownMs * rarityDef.cooldownMultiplier);
     this.throwSpeed = def.throwSpeed * rarityDef.speedMultiplier;
     this.returnSpeed = def.returnSpeed * rarityDef.speedMultiplier;
+    this.returnAcceleration = def.returnAcceleration ?? 900;
+    this.maxReturnSpeed = (def.maxReturnSpeed ?? 1200) * rarityDef.speedMultiplier;
     this.maxRange = def.maxRange * rarityDef.rangeMultiplier;
+    this.catchDistance = def.catchDistance ?? 24;
     this.pierce = def.pierce;
     this.knockback = def.knockback;
     this.description = def.description;

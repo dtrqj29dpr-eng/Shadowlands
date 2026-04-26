@@ -50,9 +50,10 @@ export class WeaponSlot implements IWeaponSlotCallback {
 
     const proj = new ThrowableSwordProjectile(scene, originX, originY);
     proj.init(this.weapon, this, getOwnerPos, getOwnerAttributes);
-    proj.launch(targetX, targetY);
-
+    // add() before launch() — the physics group's createCallbackHandler resets velocity
+    // and allowGravity to defaults for every added child; launch() overrides them after.
     projectileGroup.add(proj, true);
+    proj.launch(targetX, targetY);
     this.activeProjectile = proj;
     return true;
   }
