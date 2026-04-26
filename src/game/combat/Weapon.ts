@@ -8,6 +8,7 @@ export class Weapon {
   readonly rarity: Rarity;
   readonly rarityColor: number;
   readonly damage: number;
+  readonly strength: number;  // flat bonus to player strength, not scaled by rarity
   readonly cooldownMs: number;
   readonly throwSpeed: number;
   readonly returnSpeed: number;
@@ -24,6 +25,7 @@ export class Weapon {
     this.rarity = rarity;
     this.rarityColor = rarityDef.color;
     this.damage = Math.round(def.damage * rarityDef.damageMultiplier);
+    this.strength = def.strength;
     this.cooldownMs = Math.round(def.cooldownMs * rarityDef.cooldownMultiplier);
     this.throwSpeed = def.throwSpeed * rarityDef.speedMultiplier;
     this.returnSpeed = def.returnSpeed * rarityDef.speedMultiplier;

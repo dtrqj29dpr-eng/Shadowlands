@@ -4,7 +4,7 @@ export const ENEMY_DEFINITIONS: Record<string, EnemyDefinition> = {
   slime: {
     id: 'slime',
     displayName: 'Slime',
-    hp: 30,
+    hp: 50,
     speed: 80,
     detectionRange: 250,
     abandonRange: 400,

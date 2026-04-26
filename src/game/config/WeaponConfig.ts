@@ -13,6 +13,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponDefinition> = {
     attackType: 'returning_throw',
     baseRarity: 'Common',
     damage: 10,
+    strength: 5,
     cooldownMs: 1200,
     throwSpeed: 420,
     returnSpeed: 380,

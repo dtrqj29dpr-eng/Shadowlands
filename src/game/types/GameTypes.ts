@@ -12,6 +12,7 @@ export interface WeaponDefinition {
   attackType: AttackType;
   baseRarity: Rarity;
   damage: number;
+  strength: number;   // flat bonus added to player strength when calculating damage
   cooldownMs: number;
   throwSpeed: number;
   returnSpeed: number;

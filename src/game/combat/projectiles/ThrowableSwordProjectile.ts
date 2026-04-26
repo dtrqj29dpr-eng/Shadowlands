@@ -147,7 +147,7 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
 
     const sprite = enemy as unknown as Phaser.GameObjects.Sprite;
     const angle = Phaser.Math.Angle.Between(ownerX, ownerY, sprite.x, sprite.y);
-    const result = DamageCalculator.calculate(this.weapon.damage, this.getOwnerAttributes());
+    const result = DamageCalculator.calculate(this.weapon.damage, this.getOwnerAttributes(), this.weapon.strength);
     enemy.takeDamage(
       result.finalDamage,
       Math.cos(angle) * this.weapon.knockback,
