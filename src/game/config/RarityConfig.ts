@@ -4,7 +4,7 @@ export const RARITIES: Record<Rarity, RarityDefinition> = {
   Common: {
     name: 'Common',
     displayName: 'Common',
-    color: 0xcccccc,
+    color: 0xB8B8B8,
     damageMultiplier: 1.0,
     cooldownMultiplier: 1.0,
     rangeMultiplier: 1.0,
@@ -13,7 +13,7 @@ export const RARITIES: Record<Rarity, RarityDefinition> = {
   Rare: {
     name: 'Rare',
     displayName: 'Rare',
-    color: 0x4488ff,
+    color: 0x2F80ED,
     damageMultiplier: 1.25,
     cooldownMultiplier: 0.95,
     rangeMultiplier: 1.1,
@@ -22,7 +22,7 @@ export const RARITIES: Record<Rarity, RarityDefinition> = {
   Epic: {
     name: 'Epic',
     displayName: 'Epic',
-    color: 0xaa44ff,
+    color: 0x9B51E0,
     damageMultiplier: 1.5,
     cooldownMultiplier: 0.9,
     rangeMultiplier: 1.2,
@@ -31,7 +31,7 @@ export const RARITIES: Record<Rarity, RarityDefinition> = {
   Legendary: {
     name: 'Legendary',
     displayName: 'Legendary',
-    color: 0xff8800,
+    color: 0xF2994A,
     damageMultiplier: 2.0,
     cooldownMultiplier: 0.8,
     rangeMultiplier: 1.35,
@@ -40,7 +40,7 @@ export const RARITIES: Record<Rarity, RarityDefinition> = {
   Mythic: {
     name: 'Mythic',
     displayName: 'Mythic',
-    color: 0xff3333,
+    color: 0xEB5757,
     damageMultiplier: 2.75,
     cooldownMultiplier: 0.7,
     rangeMultiplier: 1.5,
@@ -49,7 +49,7 @@ export const RARITIES: Record<Rarity, RarityDefinition> = {
   Divine: {
     name: 'Divine',
     displayName: 'Divine',
-    color: 0xffee00,
+    color: 0xF2C94C,
     damageMultiplier: 4.0,
     cooldownMultiplier: 0.5,
     rangeMultiplier: 1.75,
