@@ -1,9 +1,10 @@
-import type { Rarity, WeaponDefinition, WeaponType, RarityDefinition } from '../types/GameTypes';
+import type { AttackType, Rarity, WeaponDefinition, WeaponType, RarityDefinition } from '../types/GameTypes';
 
 export class Weapon {
   readonly id: string;
   readonly displayName: string;
   readonly weaponType: WeaponType;
+  readonly attackType: AttackType;
   readonly rarity: Rarity;
   readonly rarityColor: number;
   readonly damage: number;
@@ -19,6 +20,7 @@ export class Weapon {
     this.id = def.id;
     this.displayName = def.displayName;
     this.weaponType = def.weaponType;
+    this.attackType = def.attackType;
     this.rarity = rarity;
     this.rarityColor = rarityDef.color;
     this.damage = Math.round(def.damage * rarityDef.damageMultiplier);

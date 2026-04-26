@@ -1,5 +1,6 @@
 export type Rarity = 'Common' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic' | 'Divine';
 export type WeaponType = 'throwable';
+export type AttackType = 'returning_throw';
 export type ResourceType = 'coin';
 export type ProjectilePhase = 'TRAVELING' | 'RETURNING' | 'IDLE';
 export type EnemyState = 'wandering' | 'chasing';
@@ -8,6 +9,7 @@ export interface WeaponDefinition {
   id: string;
   displayName: string;
   weaponType: WeaponType;
+  attackType: AttackType;
   baseRarity: Rarity;
   damage: number;
   cooldownMs: number;
