@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GAME_CONFIG } from '../config/GameConfig';
 import { WeaponSlot } from '../combat/WeaponSlot';
 import type { Weapon } from '../combat/Weapon';
-import type { PlayerAttributes, PlayerStats, SlotData } from '../types/GameTypes';
+import type { PlayerAttributes, PlayerStats, SlotData, TooltipItemData } from '../types/GameTypes';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   hp: number;
@@ -163,5 +163,10 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   getSlotData(slotIndex: 1 | 2): SlotData {
     return slotIndex === 1 ? this.slot1.getSlotData() : this.slot2.getSlotData();
+  }
+
+  getSlotTooltipData(slotIndex: 1 | 2): TooltipItemData | null {
+    const weapon = this.getEquippedWeapon(slotIndex);
+    return weapon ? weapon.getTooltipData() : null;
   }
 }

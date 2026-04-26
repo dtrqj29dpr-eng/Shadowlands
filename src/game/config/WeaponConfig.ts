@@ -1,8 +1,13 @@
-import type { AttackType, WeaponDefinition } from '../types/GameTypes';
+import type { AttackType, WeaponDefinition, WeaponType } from '../types/GameTypes';
 
 /** Human-readable label for each attack type, used in tooltips. */
 export const ATTACK_TYPE_NAMES: Record<AttackType, string> = {
   returning_throw: 'Returning Sword Throw',
+};
+
+/** Human-readable label for each weapon type, used in tooltips. */
+export const WEAPON_TYPE_NAMES: Record<WeaponType, string> = {
+  throwable: 'Throwable Weapon',
 };
 
 export const WEAPON_DEFINITIONS: Record<string, WeaponDefinition> = {

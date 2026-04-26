@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
-import type { PlayerStats, SlotData } from '../types/GameTypes';
+import type { PlayerStats, SlotData, TooltipItemData } from '../types/GameTypes';
 import { GAME_CONFIG } from '../config/GameConfig';
+import { ItemTooltip } from './ItemTooltip';
 
 const VW = GAME_CONFIG.viewport.width;
 const VH = GAME_CONFIG.viewport.height;
@@ -34,12 +35,17 @@ export class HUD {
   // Inventory hint
   private inventoryHint!: Phaser.GameObjects.Text;
 
+  // Tooltip
+  private tooltip!: ItemTooltip;
+  private slotTooltipData: [TooltipItemData | null, TooltipItemData | null] = [null, null];
+
   constructor(scene: Phaser.Scene) {
     this.buildHPPanel(scene);
     this.buildCoinPanel(scene);
     this.buildSlotPanels(scene);
     this.buildInteractPrompt(scene);
     this.buildInventoryHint(scene);
+    this.tooltip = new ItemTooltip(scene);
   }
 
   // ── HP panel (top-left) ────────────────────────────────────────
@@ -198,6 +204,26 @@ export class HUD {
         align: 'center',
       }).setOrigin(0.5, 0);
       this.slotNameTexts.push(nameText);
+
+      // Hoverable zone for tooltip — captures the slot index via closure
+      const slotIdx = i;
+      const zone = scene.add
+        .zone(sx, slotCenterY - S / 2, S, S)
+        .setOrigin(0, 0)
+        .setInteractive({ useHandCursor: false });
+
+      zone.on('pointerover', (pointer: Phaser.Input.Pointer) => {
+        if (scene.scene.isActive('InventoryScene')) return;
+        const data = this.slotTooltipData[slotIdx];
+        if (data) this.tooltip.show(data, pointer.x, pointer.y);
+      });
+      zone.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+        if (scene.scene.isActive('InventoryScene')) return;
+        this.tooltip.moveTo(pointer.x, pointer.y);
+      });
+      zone.on('pointerout', () => {
+        this.tooltip.hide();
+      });
     }
   }
 
@@ -247,6 +273,8 @@ export class HUD {
     slot2Data: SlotData,
     showInteractPrompt: boolean,
     inventoryCount: number,
+    slot1Tooltip: TooltipItemData | null,
+    slot2Tooltip: TooltipItemData | null,
   ) {
     this.updateHP(stats);
     this.updateCoins(coins);
@@ -255,6 +283,10 @@ export class HUD {
     this.promptPanel.setVisible(showInteractPrompt);
     this.promptText.setVisible(showInteractPrompt);
     this.inventoryHint.setColor(inventoryCount > 0 ? '#4a6688' : '#2a3540');
+    this.slotTooltipData[0] = slot1Tooltip;
+    this.slotTooltipData[1] = slot2Tooltip;
+    // Hide tooltip if the weapon was unequipped while hovered.
+    if (!slot1Tooltip && !slot2Tooltip) this.tooltip.hide();
   }
 
   private updateHP(stats: PlayerStats) {

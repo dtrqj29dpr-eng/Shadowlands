@@ -86,3 +86,17 @@ export interface Vec2 {
 export interface InventoryData {
   count: number;
 }
+
+export interface TooltipStatRow {
+  label: string;
+  value: string;
+}
+
+export interface TooltipItemData {
+  name: string;
+  rarity: Rarity;
+  rarityColor: number;
+  itemType: string;    // human-readable category, e.g. "Throwable Weapon"
+  attackType: string;  // human-readable ability name, e.g. "Returning Sword Throw"
+  stats: TooltipStatRow[];
+}
