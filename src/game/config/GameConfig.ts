@@ -15,8 +15,11 @@ export const GAME_CONFIG = {
   },
 
   player: {
-    speed: 200,
+    baseSpeed: 200,      // pixels/sec at 100% speed stat
     maxHp: 100,
+    strength: 10,
+    critChance: 20,
+    critDamage: 50,
     iframeDurationMs: 800,
     hitboxRadius: 14,
   },

@@ -2,13 +2,14 @@ import Phaser from 'phaser';
 import { GAME_CONFIG } from '../config/GameConfig';
 import { WeaponSlot } from '../combat/WeaponSlot';
 import type { Weapon } from '../combat/Weapon';
-import type { PlayerStats, SlotData } from '../types/GameTypes';
+import type { PlayerAttributes, PlayerStats, SlotData } from '../types/GameTypes';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
   hp: number;
   readonly maxHp: number;
   private iframeActive: boolean = false;
   private iframeTimer: number = 0;
+  private attributes: PlayerAttributes;
 
   readonly slot1: WeaponSlot;
   readonly slot2: WeaponSlot;
@@ -25,7 +26,14 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
-    this.maxHp = GAME_CONFIG.player.maxHp;
+    this.attributes = {
+      health: GAME_CONFIG.player.maxHp,
+      speed: 100,
+      strength: GAME_CONFIG.player.strength,
+      critChance: GAME_CONFIG.player.critChance,
+      critDamage: GAME_CONFIG.player.critDamage,
+    };
+    this.maxHp = this.attributes.health;
     this.hp = this.maxHp;
 
     const body = this.body as Phaser.Physics.Arcade.Body;
@@ -57,7 +65,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
   }
 
   private handleMovement() {
-    const speed = GAME_CONFIG.player.speed;
+    const speed = GAME_CONFIG.player.baseSpeed * (this.attributes.speed / 100);
     let vx = 0;
     let vy = 0;
 
@@ -118,8 +126,13 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
       targetX,
       targetY,
       () => ({ x: this.x, y: this.y }),
+      () => this.attributes,
       projectileGroup,
     );
+  }
+
+  getAttributes(): PlayerAttributes {
+    return this.attributes;
   }
 
   equipWeapon(weapon: Weapon, slotIndex: 1 | 2) {

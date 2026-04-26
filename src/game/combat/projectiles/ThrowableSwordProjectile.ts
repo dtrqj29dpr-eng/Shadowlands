@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import type { Weapon } from '../Weapon';
-import type { ProjectilePhase } from '../../types/GameTypes';
+import type { PlayerAttributes, ProjectilePhase } from '../../types/GameTypes';
+import { DamageCalculator } from '../DamageCalculator';
 
 // Minimal interface so the projectile can notify its owner slot without a circular import.
 export interface IWeaponSlotCallback {
@@ -24,6 +25,7 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
   private ownerY: number = 0;
   // Reference to get live player position for homing return.
   private getOwnerPos!: () => { x: number; y: number };
+  private getOwnerAttributes!: () => PlayerAttributes;
 
   constructor(scene: Phaser.Scene, x: number, y: number) {
     super(scene, x, y, 'sword-projectile');
@@ -41,10 +43,12 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
     weapon: Weapon,
     slot: IWeaponSlotCallback,
     getOwnerPos: () => { x: number; y: number },
+    getOwnerAttributes: () => PlayerAttributes,
   ) {
     this.weapon = weapon;
     this.slot = slot;
     this.getOwnerPos = getOwnerPos;
+    this.getOwnerAttributes = getOwnerAttributes;
     this.pierceRemaining = weapon.pierce;
     this.hitEntities = new Set();
   }
@@ -143,8 +147,9 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
 
     const sprite = enemy as unknown as Phaser.GameObjects.Sprite;
     const angle = Phaser.Math.Angle.Between(ownerX, ownerY, sprite.x, sprite.y);
+    const result = DamageCalculator.calculate(this.weapon.damage, this.getOwnerAttributes());
     enemy.takeDamage(
-      this.weapon.damage,
+      result.finalDamage,
       Math.cos(angle) * this.weapon.knockback,
       Math.sin(angle) * this.weapon.knockback,
     );

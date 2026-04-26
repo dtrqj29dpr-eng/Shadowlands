@@ -1,5 +1,5 @@
 import type { Weapon } from './Weapon';
-import type { SlotData } from '../types/GameTypes';
+import type { PlayerAttributes, SlotData } from '../types/GameTypes';
 import {
   ThrowableSwordProjectile,
   type IWeaponSlotCallback,
@@ -43,12 +43,13 @@ export class WeaponSlot implements IWeaponSlotCallback {
     targetX: number,
     targetY: number,
     getOwnerPos: () => { x: number; y: number },
+    getOwnerAttributes: () => PlayerAttributes,
     projectileGroup: Phaser.Physics.Arcade.Group,
   ): boolean {
     if (!this.isReady() || !this.weapon) return false;
 
     const proj = new ThrowableSwordProjectile(scene, originX, originY);
-    proj.init(this.weapon, this, getOwnerPos);
+    proj.init(this.weapon, this, getOwnerPos, getOwnerAttributes);
     proj.launch(targetX, targetY);
 
     projectileGroup.add(proj, true);

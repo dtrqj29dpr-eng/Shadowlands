@@ -50,6 +50,19 @@ export interface DropEntry {
   chance: number;
 }
 
+export interface PlayerAttributes {
+  health: number;
+  speed: number;      // movement speed % — 100 = default
+  strength: number;   // bonus damage % — 10 means +10%
+  critChance: number; // % chance to land a critical hit
+  critDamage: number; // bonus damage % on crits — 50 means +50%
+}
+
+export interface DamageResult {
+  finalDamage: number;
+  isCritical: boolean;
+}
+
 export interface PlayerStats {
   hp: number;
   maxHp: number;
