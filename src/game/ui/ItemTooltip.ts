@@ -52,23 +52,60 @@ export class ItemTooltip {
   }
 
   private rebuild(data: TooltipItemData): number {
-    // Destroy previous children so the container can be rebuilt fresh.
     this.container.removeAll(true);
-
-    // Use scene.add.* so Phaser properly initialises each object.
-    // Container.add() (exclusive mode) then moves them from the display list
-    // into the container, preventing double-rendering.
     const scene = this.container.scene;
     const colorHex = `#${data.rarityColor.toString(16).padStart(6, '0')}`;
     let y = PAD;
 
-    // ── Name ──────────────────────────────────────────────────────
     const nameTxt = scene.add.text(PAD, y, data.name, {
       fontSize: '13px', color: '#ddeeff', fontFamily: 'monospace', fontStyle: 'bold',
     });
     y += nameTxt.height + 3;
 
-    // ── Rarity ────────────────────────────────────────────────────
+    const bg = scene.add.graphics();
+
+    if (data.rarityAtBottom) {
+      // Inventory layout: name → divider → stats → divider → rarity
+      const div1Y = y;
+      y += 6;
+
+      const statObjects: Phaser.GameObjects.Text[] = [];
+      for (const stat of data.stats) {
+        const lbl = scene.add.text(PAD, y, stat.label, {
+          fontSize: '10px', color: '#667788', fontFamily: 'monospace',
+        });
+        const val = scene.add.text(TOOLTIP_W - PAD, y, stat.value, {
+          fontSize: '10px', color: '#ddeeff', fontFamily: 'monospace',
+        }).setOrigin(1, 0);
+        statObjects.push(lbl, val);
+        y += lbl.height + ROW_GAP;
+      }
+
+      y += PAD - ROW_GAP;
+      const div2Y = y;
+      y += 6;
+
+      const rarityTxt = scene.add.text(PAD, y, data.rarity, {
+        fontSize: '10px', color: colorHex, fontFamily: 'monospace',
+      });
+      y += rarityTxt.height + PAD;
+      const totalHeight = y;
+
+      bg.fillStyle(PANEL_BG, 0.97);
+      bg.fillRect(0, 0, TOOLTIP_W, totalHeight);
+      bg.lineStyle(2, data.rarityColor, 1);
+      bg.strokeRect(0, 0, TOOLTIP_W, totalHeight);
+      bg.lineStyle(1, 0x2a3450, 0.65);
+      bg.strokeLineShape(new Phaser.Geom.Line(PAD, div1Y, TOOLTIP_W - PAD, div1Y));
+      bg.strokeLineShape(new Phaser.Geom.Line(PAD, div2Y, TOOLTIP_W - PAD, div2Y));
+
+      this.container.add(bg);
+      this.container.add([nameTxt, ...statObjects, rarityTxt]);
+
+      return totalHeight;
+    }
+
+    // HUD layout: name → rarity → divider → item type + attack type → divider → stats
     const rarityTxt = scene.add.text(PAD, y, data.rarity, {
       fontSize: '10px', color: colorHex, fontFamily: 'monospace',
     });
@@ -77,14 +114,12 @@ export class ItemTooltip {
     const div1Y = y;
     y += 6;
 
-    // ── Item type ─────────────────────────────────────────────────
-    const typeTxt = scene.add.text(PAD, y, data.itemType, {
+    const typeTxt = scene.add.text(PAD, y, data.itemType ?? '', {
       fontSize: '10px', color: '#778899', fontFamily: 'monospace',
     });
     y += typeTxt.height + 2;
 
-    // ── Attack type ───────────────────────────────────────────────
-    const atkTxt = scene.add.text(PAD, y, data.attackType, {
+    const atkTxt = scene.add.text(PAD, y, data.attackType ?? '', {
       fontSize: '9px', color: '#5566aa', fontFamily: 'monospace',
     });
     y += atkTxt.height + 8;
@@ -92,7 +127,6 @@ export class ItemTooltip {
     const div2Y = y;
     y += 6;
 
-    // ── Stat rows ─────────────────────────────────────────────────
     const statObjects: Phaser.GameObjects.Text[] = [];
     for (const stat of data.stats) {
       const lbl = scene.add.text(PAD, y, stat.label, {
@@ -105,11 +139,9 @@ export class ItemTooltip {
       y += lbl.height + ROW_GAP;
     }
 
-    y += PAD - ROW_GAP; // bottom padding
+    y += PAD - ROW_GAP;
     const totalHeight = y;
 
-    // ── Background (behind everything) ────────────────────────────
-    const bg = scene.add.graphics();
     bg.fillStyle(PANEL_BG, 0.97);
     bg.fillRect(0, 0, TOOLTIP_W, totalHeight);
     bg.lineStyle(2, data.rarityColor, 1);
@@ -118,7 +150,6 @@ export class ItemTooltip {
     bg.strokeLineShape(new Phaser.Geom.Line(PAD, div1Y, TOOLTIP_W - PAD, div1Y));
     bg.strokeLineShape(new Phaser.Geom.Line(PAD, div2Y, TOOLTIP_W - PAD, div2Y));
 
-    // Add bg first so it renders behind text.
     this.container.add(bg);
     this.container.add([nameTxt, rarityTxt, typeTxt, atkTxt, ...statObjects]);
 

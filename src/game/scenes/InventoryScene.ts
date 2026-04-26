@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { InventorySystem } from '../systems/InventorySystem';
 import type { Player } from '../entities/Player';
 import type { Weapon } from '../combat/Weapon';
+import { ItemTooltip } from '../ui/ItemTooltip';
 
 const VW = 800;
 const VH = 600;
@@ -31,6 +32,7 @@ export class InventoryScene extends Phaser.Scene {
   private dynamicObjects: Phaser.GameObjects.GameObject[] = [];
   private iKey!: Phaser.Input.Keyboard.Key;
   private escKey!: Phaser.Input.Keyboard.Key;
+  private tooltip!: ItemTooltip;
 
   constructor() {
     super({ key: 'InventoryScene' });
@@ -81,6 +83,7 @@ export class InventoryScene extends Phaser.Scene {
     this.iKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.I);
     this.escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
+    this.tooltip = new ItemTooltip(this);
     this.rebuildDisplay();
   }
 
@@ -99,6 +102,7 @@ export class InventoryScene extends Phaser.Scene {
   }
 
   private rebuildDisplay() {
+    this.tooltip?.hide();
     for (const obj of this.dynamicObjects) obj.destroy();
     this.dynamicObjects = [];
     this.buildEquippedPanel();
@@ -155,13 +159,18 @@ export class InventoryScene extends Phaser.Scene {
           .setOrigin(0, 0)
           .setInteractive({ useHandCursor: true });
         zone.on('pointerup', () => this.unequipSlot(sn));
-        zone.on('pointerover', () => {
+        zone.on('pointerover', (pointer: Phaser.Input.Pointer) => {
           gfx.clear();
           this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, true);
+          this.tooltip.show(weapon.getInventoryTooltipData(), pointer.x, pointer.y);
+        });
+        zone.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+          this.tooltip.moveTo(pointer.x, pointer.y);
         });
         zone.on('pointerout', () => {
           gfx.clear();
           this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, false);
+          this.tooltip.hide();
         });
         this.dynamicObjects.push(zone);
       } else {
@@ -231,11 +240,16 @@ export class InventoryScene extends Phaser.Scene {
           this.selectedIndex = this.selectedIndex === capturedI ? -1 : capturedI;
           this.rebuildDisplay();
         });
-        zone.on('pointerover', () => {
+        zone.on('pointerover', (pointer: Phaser.Input.Pointer) => {
           if (!selected) { gfx.clear(); this.drawGridCard(gfx, cx, cy, weapon, false, true); }
+          this.tooltip.show(weapon.getInventoryTooltipData(), pointer.x, pointer.y);
+        });
+        zone.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+          this.tooltip.moveTo(pointer.x, pointer.y);
         });
         zone.on('pointerout', () => {
           if (!selected) { gfx.clear(); this.drawGridCard(gfx, cx, cy, weapon, false, false); }
+          this.tooltip.hide();
         });
         this.dynamicObjects.push(zone);
       }

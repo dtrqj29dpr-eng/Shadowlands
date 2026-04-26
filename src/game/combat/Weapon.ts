@@ -1,4 +1,4 @@
-import type { AttackType, Rarity, TooltipItemData, WeaponDefinition, WeaponType, RarityDefinition } from '../types/GameTypes';
+import type { AttackType, Rarity, TooltipItemData, TooltipStatRow, WeaponDefinition, WeaponType, RarityDefinition } from '../types/GameTypes';
 import { ATTACK_TYPE_NAMES, WEAPON_TYPE_NAMES } from '../config/WeaponConfig';
 
 export class Weapon {
@@ -48,6 +48,21 @@ export class Weapon {
         { label: 'Strength', value: String(this.strength) },
         { label: 'Cooldown', value: `${(this.cooldownMs / 1000).toFixed(1)}s` },
       ],
+    };
+  }
+
+  getInventoryTooltipData(): TooltipItemData {
+    const stats: TooltipStatRow[] = [
+      { label: 'Damage',   value: String(this.damage) },
+      { label: 'Strength', value: String(this.strength) },
+    ];
+    if (this.pierce > 0) stats.push({ label: 'Pierce', value: String(this.pierce) });
+    return {
+      name: this.displayName,
+      rarity: this.rarity,
+      rarityColor: this.rarityColor,
+      stats,
+      rarityAtBottom: true,
     };
   }
 }

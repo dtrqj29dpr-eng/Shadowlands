@@ -96,7 +96,8 @@ export interface TooltipItemData {
   name: string;
   rarity: Rarity;
   rarityColor: number;
-  itemType: string;    // human-readable category, e.g. "Throwable Weapon"
-  attackType: string;  // human-readable ability name, e.g. "Returning Sword Throw"
+  itemType?: string;
+  attackType?: string;
   stats: TooltipStatRow[];
+  rarityAtBottom?: boolean;
 }
