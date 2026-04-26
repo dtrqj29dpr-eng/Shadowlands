@@ -4,6 +4,7 @@ import { ATTACK_TYPE_NAMES, WEAPON_TYPE_NAMES } from '../config/WeaponConfig';
 export class Weapon {
   readonly id: string;
   readonly displayName: string;
+  readonly textureKey: string;
   readonly weaponType: WeaponType;
   readonly attackType: AttackType;
   readonly rarity: Rarity;
@@ -24,6 +25,7 @@ export class Weapon {
   constructor(def: WeaponDefinition, rarity: Rarity, rarityDef: RarityDefinition) {
     this.id = def.id;
     this.displayName = def.displayName;
+    this.textureKey = def.textureKey;
     this.weaponType = def.weaponType;
     this.attackType = def.attackType;
     this.rarity = rarity;

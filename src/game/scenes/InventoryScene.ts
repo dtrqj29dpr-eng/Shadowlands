@@ -138,12 +138,18 @@ export class InventoryScene extends Phaser.Scene {
       if (weapon) {
         const colorHex = `#${weapon.rarityColor.toString(16).padStart(6, '0')}`;
 
-        const nameText = this.add.text(cardX + cardW / 2, cardY + cardH / 2 - 10, weapon.displayName, {
+        const weaponSprite = this.add.image(cardX + cardW / 2, cardY + 32, weapon.textureKey)
+          .setScale(2.0)
+          .setRotation(-Math.PI / 4)
+          .setAlpha(0.92);
+        this.dynamicObjects.push(weaponSprite);
+
+        const nameText = this.add.text(cardX + cardW / 2, cardY + 67, weapon.displayName, {
           fontSize: '13px', color: '#ddeeff', fontFamily: 'monospace',
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(nameText);
 
-        const rarityText = this.add.text(cardX + cardW / 2, cardY + cardH / 2 + 8, weapon.rarity, {
+        const rarityText = this.add.text(cardX + cardW / 2, cardY + 82, weapon.rarity, {
           fontSize: '10px', color: colorHex, fontFamily: 'monospace',
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(rarityText);
@@ -220,13 +226,19 @@ export class InventoryScene extends Phaser.Scene {
       if (weapon) {
         const colorHex = `#${weapon.rarityColor.toString(16).padStart(6, '0')}`;
 
-        const nameText = this.add.text(cx + CARD_W / 2, cy + CARD_H / 2 - 9, weapon.displayName, {
+        const weaponSprite = this.add.image(cx + CARD_W / 2, cy + 22, weapon.textureKey)
+          .setScale(1.5)
+          .setRotation(-Math.PI / 4)
+          .setAlpha(0.92);
+        this.dynamicObjects.push(weaponSprite);
+
+        const nameText = this.add.text(cx + CARD_W / 2, cy + 47, weapon.displayName, {
           fontSize: '9px', color: '#ccdde8', fontFamily: 'monospace',
           align: 'center', wordWrap: { width: CARD_W - 8 },
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(nameText);
 
-        const rarityText = this.add.text(cx + CARD_W / 2, cy + CARD_H / 2 + 9, weapon.rarity, {
+        const rarityText = this.add.text(cx + CARD_W / 2, cy + 59, weapon.rarity, {
           fontSize: '8px', color: colorHex, fontFamily: 'monospace',
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(rarityText);

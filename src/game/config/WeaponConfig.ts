@@ -14,6 +14,7 @@ export const WEAPON_DEFINITIONS: Record<string, WeaponDefinition> = {
   wooden_sword: {
     id: 'wooden_sword',
     displayName: 'Wooden Sword',
+    textureKey: 'sword-projectile',
     weaponType: 'throwable',
     attackType: 'returning_throw',
     baseRarity: 'Common',

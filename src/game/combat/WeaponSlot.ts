@@ -93,6 +93,7 @@ export class WeaponSlot implements IWeaponSlotCallback {
       rarityColor: this.weapon.rarityColor,
       cooldownFraction: this.getCooldownFraction(),
       equipped: true,
+      weaponTextureKey: this.weapon.textureKey,
     };
   }
 

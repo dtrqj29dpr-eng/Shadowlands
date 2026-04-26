@@ -25,6 +25,7 @@ export class HUD {
   private slotGlows!: Phaser.GameObjects.Rectangle[];
   private slotCooldownGfx!: Phaser.GameObjects.Graphics[];
   private slotNameTexts!: Phaser.GameObjects.Text[];
+  private slotSprites!: Phaser.GameObjects.Image[];
   private slotXs!: number[];
   private slotTopY!: number;
 
@@ -157,6 +158,7 @@ export class HUD {
     this.slotGlows = [];
     this.slotCooldownGfx = [];
     this.slotNameTexts = [];
+    this.slotSprites = [];
 
     const labels = ['LMB', 'RMB'];
 
@@ -177,6 +179,14 @@ export class HUD {
       // Dark inner area (slightly lighter than box bg — creates depth)
       scene.add.rectangle(sx + 3, slotCenterY - S / 2 + 3, S - 6, S - 6, 0x0a0c18, 0.5)
         .setOrigin(0, 0);
+
+      // Weapon sprite icon — hidden until a weapon is equipped.
+      const sprite = scene.add.image(sx + S / 2, slotCenterY, 'sword-projectile')
+        .setScale(1.5)
+        .setRotation(-Math.PI / 4)
+        .setAlpha(0.92)
+        .setVisible(false);
+      this.slotSprites.push(sprite);
 
       // Cooldown overlay Graphics (redrawn each frame)
       const cdGfx = scene.add.graphics();
@@ -333,10 +343,12 @@ export class HUD {
       box.setStrokeStyle(2, data.rarityColor, 1);
       glow.setFillStyle(data.rarityColor, 0.12);
       nameText.setText(`${data.weaponName}\n${data.rarity}`).setColor(colorHex);
+      this.slotSprites[index].setVisible(true);
     } else {
       box.setStrokeStyle(1.5, 0x333344, 1);
       glow.setFillStyle(0x000000, 0);
       nameText.setText('Empty').setColor('#333355');
+      this.slotSprites[index].setVisible(false);
     }
 
     // Cooldown overlay — redrawn from scratch each frame.

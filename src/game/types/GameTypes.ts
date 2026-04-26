@@ -8,6 +8,7 @@ export type EnemyState = 'wandering' | 'chasing';
 export interface WeaponDefinition {
   id: string;
   displayName: string;
+  textureKey: string;
   weaponType: WeaponType;
   attackType: AttackType;
   baseRarity: Rarity;
@@ -79,6 +80,7 @@ export interface SlotData {
   rarityColor: number;
   cooldownFraction: number;
   equipped: boolean;
+  weaponTextureKey?: string;
 }
 
 export interface Vec2 {
