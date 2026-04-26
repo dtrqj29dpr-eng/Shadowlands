@@ -210,7 +210,10 @@ export class HUD {
       const zone = scene.add
         .zone(sx, slotCenterY - S / 2, S, S)
         .setOrigin(0, 0)
-        .setInteractive({ useHandCursor: false });
+        .setInteractive(
+          new Phaser.Geom.Rectangle(0, 0, S, S),
+          Phaser.Geom.Rectangle.Contains,
+        );
 
       zone.on('pointerover', (pointer: Phaser.Input.Pointer) => {
         if (scene.scene.isActive('InventoryScene')) return;
