@@ -119,7 +119,8 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
   private beginReturn() {
     this.phase = 'RETURNING';
     this.currentReturnSpeed = this.weapon.returnSpeed;
-    // Do NOT clear hitEntities — the sword should not re-damage on the way back.
+    // Clear so each pass (outbound and return) gets an independent hit window.
+    this.hitEntities = new Set();
   }
 
   private tickReturning(delta: number) {
@@ -163,9 +164,14 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
     this.destroy();
   }
 
+  /** Returns true while the sword can deal damage (outbound or returning). */
+  canHit(): boolean {
+    return this.phase === 'TRAVELING' || this.phase === 'RETURNING';
+  }
+
   /** Called by CollisionSystem when this projectile overlaps an enemy. */
   onHitEnemy(enemy: IHittable, ownerX: number, ownerY: number) {
-    if (this.phase !== 'TRAVELING') return;
+    if (!this.canHit()) return;
     if (this.hitEntities.has(enemy)) return;
 
     this.hitEntities.add(enemy);
@@ -183,10 +189,14 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
       Math.sin(angle) * this.weapon.knockback,
     );
 
-    if (this.pierceRemaining <= 0) {
-      this.beginReturn();
-    } else {
-      this.pierceRemaining--;
+    // On the outbound pass, a non-pierce hit triggers the return.
+    // On the return pass, the sword just damages and keeps flying home.
+    if (this.phase === 'TRAVELING') {
+      if (this.pierceRemaining <= 0) {
+        this.beginReturn();
+      } else {
+        this.pierceRemaining--;
+      }
     }
   }
 

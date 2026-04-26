@@ -33,7 +33,7 @@ export class CollisionSystem {
       (projObj, enemyObj) => {
         const proj = projObj as ThrowableSwordProjectile;
         const enemy = enemyObj as BaseEnemy;
-        if (!proj.isInTravelingPhase()) return;
+        if (!proj.canHit()) return;
         proj.onHitEnemy(enemy as unknown as import('../combat/projectiles/ThrowableSwordProjectile').IHittable, player.x, player.y);
       },
     );
