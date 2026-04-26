@@ -127,6 +127,19 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     slot.equip(weapon);
   }
 
+  /** Returns the currently equipped Weapon for the given slot, or null if empty. */
+  getEquippedWeapon(slotIndex: 1 | 2): Weapon | null {
+    return slotIndex === 1 ? this.slot1.getWeapon() : this.slot2.getWeapon();
+  }
+
+  /** Clears the given slot (weapon returns to caller — caller must manage inventory). */
+  unequipSlot(slotIndex: 1 | 2): Weapon | null {
+    const slot = slotIndex === 1 ? this.slot1 : this.slot2;
+    const weapon = slot.getWeapon();
+    slot.clear();
+    return weapon;
+  }
+
   getStats(): PlayerStats {
     return {
       hp: this.hp,

@@ -29,6 +29,13 @@ export class WeaponSlot implements IWeaponSlotCallback {
     );
   }
 
+  /** Empties the slot without affecting the active projectile cooldown. */
+  clear() {
+    this.weapon = null;
+    this.cooldownRemaining = 0;
+    // Leave activeProjectile alone — it will return and call onProjectileReturned harmlessly.
+  }
+
   tryFire(
     scene: Phaser.Scene,
     originX: number,

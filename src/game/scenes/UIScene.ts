@@ -18,9 +18,7 @@ export class UIScene extends Phaser.Scene {
   }
 
   update() {
-    // Pull model: read state from GameScene each frame.
-    // No event bus needed for per-frame HUD data.
-    const { player, resourceSystem } = this.gameScene;
+    const { player, resourceSystem, inventorySystem } = this.gameScene;
     if (!player) return;
 
     this.hud.update(
@@ -29,6 +27,7 @@ export class UIScene extends Phaser.Scene {
       player.getSlotData(1),
       player.getSlotData(2),
       this.gameScene.isNearChest(),
+      inventorySystem.getCount(),
     );
   }
 }

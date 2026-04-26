@@ -31,11 +31,15 @@ export class HUD {
   private promptPanel!: Phaser.GameObjects.Graphics;
   private promptText!: Phaser.GameObjects.Text;
 
+  // Inventory hint
+  private inventoryHint!: Phaser.GameObjects.Text;
+
   constructor(scene: Phaser.Scene) {
     this.buildHPPanel(scene);
     this.buildCoinPanel(scene);
     this.buildSlotPanels(scene);
     this.buildInteractPrompt(scene);
+    this.buildInventoryHint(scene);
   }
 
   // ── HP panel (top-left) ────────────────────────────────────────
@@ -224,6 +228,16 @@ export class HUD {
     this.promptPanel.strokeRect(px + 2, py + 2, pw - 4, ph - 4);
   }
 
+  // ── Inventory hint (below slot panel) ─────────────────────────
+
+  private buildInventoryHint(scene: Phaser.Scene) {
+    this.inventoryHint = scene.add.text(VW / 2, VH - 6, '[I]  Inventory', {
+      fontSize: '9px',
+      color: '#2a3540',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5, 1);
+  }
+
   // ── Per-frame update ───────────────────────────────────────────
 
   update(
@@ -232,6 +246,7 @@ export class HUD {
     slot1Data: SlotData,
     slot2Data: SlotData,
     showInteractPrompt: boolean,
+    inventoryCount: number,
   ) {
     this.updateHP(stats);
     this.updateCoins(coins);
@@ -239,6 +254,7 @@ export class HUD {
     this.updateSlot(1, slot2Data);
     this.promptPanel.setVisible(showInteractPrompt);
     this.promptText.setVisible(showInteractPrompt);
+    this.inventoryHint.setColor(inventoryCount > 0 ? '#4a6688' : '#2a3540');
   }
 
   private updateHP(stats: PlayerStats) {
