@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import type { EnemyDefinition, EnemyState } from '../../types/GameTypes';
 import type { DropSystem } from '../../systems/DropSystem';
 import { GAME_CONFIG } from '../../config/GameConfig';
+import { FloatingCombatText } from '../../ui/FloatingCombatText';
 
 // Minimal interface so BaseEnemy can query player position without importing GameScene.
 export interface IEnemySceneContext {
@@ -25,6 +26,11 @@ export abstract class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
 
   protected ctx!: IEnemySceneContext;
 
+  private healthBarBg!: Phaser.GameObjects.Rectangle;
+  private healthBarFg!: Phaser.GameObjects.Rectangle;
+  private readonly barW: number;
+  private static readonly BAR_H = 4;
+
   constructor(
     scene: Phaser.Scene,
     x: number,
@@ -45,10 +51,18 @@ export abstract class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
     const body = this.body as Phaser.Physics.Arcade.Body;
     body.setCollideWorldBounds(true);
     body.setAllowGravity(false);
+
+    this.barW = Math.round(this.displayWidth);
+    this.healthBarBg = scene.add.rectangle(0, 0, this.barW, BaseEnemy.BAR_H, 0x0a0a12, 0.88)
+      .setOrigin(0, 0).setDepth(5);
+    this.healthBarFg = scene.add.rectangle(0, 0, this.barW, BaseEnemy.BAR_H, 0x44cc44)
+      .setOrigin(0, 0).setDepth(6);
+    this.updateHealthBar();
   }
 
   // Phaser calls this automatically when runChildUpdate:true on the group.
   update(_time: number, delta: number) {
+    this.updateHealthBar();
     this.updateAI(delta);
   }
 
@@ -107,7 +121,7 @@ export abstract class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  takeDamage(amount: number, kbX: number, kbY: number) {
+  takeDamage(amount: number, kbX: number, kbY: number, isCritical = false) {
     this.hp -= amount;
 
     const body = this.body as Phaser.Physics.Arcade.Body;
@@ -118,13 +132,29 @@ export abstract class BaseEnemy extends Phaser.Physics.Arcade.Sprite {
       if (this.active) this.clearTint();
     });
 
+    FloatingCombatText.spawn(this.scene, this.x, this.y, Math.round(amount), isCritical);
+    this.updateHealthBar();
+
     if (this.hp <= 0) {
       this.onDeath();
     }
   }
 
   protected onDeath() {
+    if (this.healthBarBg.active) this.healthBarBg.destroy();
+    if (this.healthBarFg.active) this.healthBarFg.destroy();
     this.ctx.getDropSystem().processDrop(this.definition.dropTable, this.x, this.y);
     this.destroy();
+  }
+
+  private updateHealthBar() {
+    const barX = this.x - this.barW / 2;
+    const barY = this.y - this.displayHeight / 2 - 8;
+    const frac = Math.max(0, this.hp / this.maxHp);
+    const fillW = Math.max(0.5, this.barW * frac);
+    const fillColor = frac > 0.5 ? 0x44cc44 : frac > 0.25 ? 0xccaa22 : 0xcc2222;
+
+    this.healthBarBg.setPosition(barX, barY);
+    this.healthBarFg.setPosition(barX, barY).setSize(fillW, BaseEnemy.BAR_H).setFillStyle(fillColor);
   }
 }

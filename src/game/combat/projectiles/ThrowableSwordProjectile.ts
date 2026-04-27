@@ -10,7 +10,7 @@ export interface IWeaponSlotCallback {
 
 // Minimal interface for enemy hit detection — avoids importing BaseEnemy here.
 export interface IHittable {
-  takeDamage(amount: number, kbX: number, kbY: number): void;
+  takeDamage(amount: number, kbX: number, kbY: number, isCritical?: boolean): void;
 }
 
 const SPIN_SPEED = 960;           // degrees per second
@@ -207,6 +207,7 @@ export class ThrowableSwordProjectile extends Phaser.Physics.Arcade.Sprite {
       result.finalDamage,
       Math.cos(angle) * this.weapon.knockback,
       Math.sin(angle) * this.weapon.knockback,
+      result.isCritical,
     );
 
     if (this.phase === 'TRAVELING') {
