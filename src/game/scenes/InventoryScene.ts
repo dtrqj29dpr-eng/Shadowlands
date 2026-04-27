@@ -157,6 +157,7 @@ export class InventoryScene extends Phaser.Scene {
     this.dynamicObjects = [];
     this.buildTabSwitcher();
     this.buildCharacterPanel();
+    this.buildStatsPanel();
     this.buildItemGrid();
   }
 
@@ -400,6 +401,62 @@ export class InventoryScene extends Phaser.Scene {
       gfx.lineStyle(1.5, isArtifact ? 0x2a1f40 : 0x333344, 1);
     }
     gfx.strokeRect(x, y, size, size);
+  }
+
+  // ── Left panel: stats summary ─────────────────────────────────────────────
+
+  private buildStatsPanel() {
+    const stats = this.player.getEffectiveStats();
+
+    const PNL_X = this.pX + 8;
+    const PNL_W = 156;
+    const TITLE_H = 14;
+    const SEP_H = 1;
+    const ROW_H = 14;
+    const BOTTOM_PAD = 5;
+    const startY = this.pY + 58;
+
+    const rows: Array<{ label: string; value: string }> = [
+      { label: 'HP',       value: `${stats.maxHp}` },
+      { label: 'Speed',    value: `${stats.speed}%` },
+      { label: 'Strength', value: `+${stats.strength}%` },
+      { label: 'Crit',     value: `${stats.critChance}%` },
+      { label: 'Crit DMG', value: `+${stats.critDamage}%` },
+    ];
+
+    const maxH = this.charY - 62 - startY;
+    if (maxH < TITLE_H + SEP_H + ROW_H + BOTTOM_PAD) return;
+    const rowCount = Math.min(rows.length, Math.floor((maxH - TITLE_H - SEP_H - BOTTOM_PAD) / ROW_H));
+    const PNL_H = TITLE_H + SEP_H + rowCount * ROW_H + BOTTOM_PAD;
+
+    const gfx = this.add.graphics();
+    gfx.fillStyle(0x080a12, 1);
+    gfx.fillRect(PNL_X, startY, PNL_W, PNL_H);
+    gfx.lineStyle(1, 0x1a2436, 1);
+    gfx.strokeRect(PNL_X, startY, PNL_W, PNL_H);
+    gfx.lineStyle(1, 0x1e2a3e, 0.6);
+    gfx.strokeLineShape(new Phaser.Geom.Line(PNL_X + 6, startY + TITLE_H, PNL_X + PNL_W - 6, startY + TITLE_H));
+    this.dynamicObjects.push(gfx);
+
+    const titleTxt = this.add.text(PNL_X + PNL_W / 2, startY + TITLE_H / 2, 'STATS', {
+      fontSize: '9px', color: '#55667a', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
+    }).setOrigin(0.5, 0.5);
+    this.dynamicObjects.push(titleTxt);
+
+    for (let i = 0; i < rowCount; i++) {
+      const { label, value } = rows[i];
+      const rowY = startY + TITLE_H + SEP_H + i * ROW_H + ROW_H / 2;
+
+      const lbl = this.add.text(PNL_X + 8, rowY, label, {
+        fontSize: '9px', color: '#667788', fontFamily: GAME_FONT_FAMILY,
+      }).setOrigin(0, 0.5);
+      this.dynamicObjects.push(lbl);
+
+      const val = this.add.text(PNL_X + PNL_W - 8, rowY, value, {
+        fontSize: '9px', color: '#ddeeff', fontFamily: GAME_FONT_FAMILY,
+      }).setOrigin(1, 0.5);
+      this.dynamicObjects.push(val);
+    }
   }
 
   // ── Right panel: item grid ────────────────────────────────────────────────

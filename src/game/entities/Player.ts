@@ -138,6 +138,18 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     return this.attributes;
   }
 
+  getEffectiveStats(): { maxHp: number; speed: number; strength: number; critChance: number; critDamage: number } {
+    const w1 = this.slot1.getWeapon();
+    const w2 = this.slot2.getWeapon();
+    return {
+      maxHp: this.attributes.health,
+      speed: this.attributes.speed,
+      strength: this.attributes.strength + (w1?.strength ?? 0) + (w2?.strength ?? 0),
+      critChance: this.attributes.critChance,
+      critDamage: this.attributes.critDamage,
+    };
+  }
+
   equipWeapon(weapon: Weapon, slotIndex: 1 | 2) {
     const slot = slotIndex === 1 ? this.slot1 : this.slot2;
     slot.equip(weapon);
