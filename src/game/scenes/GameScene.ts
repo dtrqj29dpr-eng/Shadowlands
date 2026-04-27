@@ -27,6 +27,7 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
   private enemySpawner!: EnemySpawner;
   private combatSystem!: CombatSystem;
   private inventoryKey!: Phaser.Input.Keyboard.Key;
+  private escKey!: Phaser.Input.Keyboard.Key;
 
   constructor() {
     super({ key: 'GameScene' });
@@ -84,13 +85,20 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
     );
 
     this.inventoryKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.I);
+    this.escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
     this.scene.launch('UIScene');
   }
 
   update(time: number, delta: number) {
-    // Don't process game input while inventory is open.
+    // Don't process game input while a menu is open.
     if (this.scene.isActive('InventoryScene')) return;
+
+    if (Phaser.Input.Keyboard.JustDown(this.escKey)) {
+      this.scene.launch('PauseMenuScene');
+      this.scene.pause();
+      return;
+    }
 
     this.inputSystem.update();
 

@@ -4,6 +4,7 @@ import { BootScene } from './game/scenes/BootScene';
 import { GameScene } from './game/scenes/GameScene';
 import { UIScene } from './game/scenes/UIScene';
 import { InventoryScene } from './game/scenes/InventoryScene';
+import { PauseMenuScene } from './game/scenes/PauseMenuScene';
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -18,7 +19,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false,
     },
   },
-  scene: [BootScene, GameScene, UIScene, InventoryScene],
+  scene: [BootScene, GameScene, UIScene, InventoryScene, PauseMenuScene],
   scale: {
     mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
