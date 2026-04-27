@@ -155,12 +155,6 @@ export class InventoryScene extends Phaser.Scene {
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(rarityText);
 
-        if (targetable) {
-          const hint = this.add.text(cardX + cardW / 2, cardY + cardH - 7, '→ equip here', {
-            fontSize: '9px', color: '#4466aa', fontFamily: 'monospace',
-          }).setOrigin(0.5, 1);
-          this.dynamicObjects.push(hint);
-        }
       } else {
         const label = targetable
           ? { text: '→ equip here', color: '#2a4060' }
@@ -212,7 +206,7 @@ export class InventoryScene extends Phaser.Scene {
   ) {
     gfx.fillStyle(hover ? 0x0f1220 : 0x090b17, 0.95);
     gfx.fillRect(x, y, w, h);
-    if (targetable) {
+    if (targetable && !weapon) {
       gfx.lineStyle(2, hover ? 0x7799cc : 0x2a4060, 1);
     } else if (weapon) {
       gfx.lineStyle(2, weapon.rarityColor, hover ? 1 : 0.85);
