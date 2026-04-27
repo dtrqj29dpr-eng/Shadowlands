@@ -1,0 +1,14 @@
+{
+  "appId": "com.shadowlands.game",
+  "productName": "Shadowlands",
+  "directories": {
+    "output": "release"
+  },
+  "files": [
+    "dist/**",
+    "dist-electron/**"
+  ],
+  "win": {
+    "target": "nsis"
+  }
+}

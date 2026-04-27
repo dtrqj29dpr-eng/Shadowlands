@@ -1,10 +1,9 @@
 import Phaser from 'phaser';
 import type { PlayerStats, SlotData, TooltipItemData } from '../types/GameTypes';
-import { GAME_CONFIG } from '../config/GameConfig';
+import { GAME_FONT_FAMILY } from '../config/FontConfig';
 import { ItemTooltip } from './ItemTooltip';
-
-const VW = GAME_CONFIG.viewport.width;
-const VH = GAME_CONFIG.viewport.height;
+import { LootFeed } from './LootFeed';
+import type { Weapon } from '../combat/Weapon';
 
 // Shared dark-fantasy panel style.
 const PANEL_BG   = 0x07080f;
@@ -40,6 +39,12 @@ export class HUD {
   private tooltip!: ItemTooltip;
   private slotTooltipData: [TooltipItemData | null, TooltipItemData | null] = [null, null];
 
+  // Loot feed
+  private lootFeed!: LootFeed;
+
+  // All game objects created by this HUD (for cleanup on resize).
+  private created: Phaser.GameObjects.GameObject[] = [];
+
   constructor(scene: Phaser.Scene) {
     this.buildHPPanel(scene);
     this.buildCoinPanel(scene);
@@ -47,6 +52,24 @@ export class HUD {
     this.buildInteractPrompt(scene);
     this.buildInventoryHint(scene);
     this.tooltip = new ItemTooltip(scene);
+    this.lootFeed = new LootFeed(scene);
+  }
+
+  /** Track a game object for bulk cleanup in destroy(). */
+  private t<T extends Phaser.GameObjects.GameObject>(o: T): T {
+    this.created.push(o);
+    return o;
+  }
+
+  showLootItem(weapon: Weapon) {
+    this.lootFeed.showItem(weapon);
+  }
+
+  destroy() {
+    this.created.forEach(o => o.destroy());
+    this.created = [];
+    this.tooltip.destroy();
+    this.lootFeed.destroy();
   }
 
   // ── HP panel (top-left) ────────────────────────────────────────
@@ -55,7 +78,7 @@ export class HUD {
     const px = 8, py = 8, pw = 236, ph = 40;
 
     // Panel background
-    const panelGfx = scene.add.graphics();
+    const panelGfx = this.t(scene.add.graphics());
     panelGfx.fillStyle(PANEL_BG, 0.82);
     panelGfx.fillRect(px, py, pw, ph);
     panelGfx.lineStyle(1, PANEL_EDGE, 0.9);
@@ -65,7 +88,7 @@ export class HUD {
     panelGfx.strokeLineShape(new Phaser.Geom.Line(px + 1, py + 1, px + pw - 1, py + 1));
 
     // Heart icon (two circles + downward triangle)
-    const heartGfx = scene.add.graphics();
+    const heartGfx = this.t(scene.add.graphics());
     heartGfx.fillStyle(0xcc1111);
     heartGfx.fillCircle(22, 26, 5);
     heartGfx.fillCircle(28, 26, 5);
@@ -75,29 +98,30 @@ export class HUD {
 
     // HP bar track
     const barX = 38, barY = 22, barW = 182, barH = 16;
-    scene.add.rectangle(barX, barY, barW, barH, 0x220000, 0.9).setOrigin(0, 0);
-    scene.add.rectangle(barX, barY, barW, barH, 0x000000, 0).setOrigin(0, 0)
-      .setStrokeStyle(1, 0x440000, 0.9);
+    this.t(scene.add.rectangle(barX, barY, barW, barH, 0x220000, 0.9).setOrigin(0, 0));
+    this.t(scene.add.rectangle(barX, barY, barW, barH, 0x000000, 0).setOrigin(0, 0)
+      .setStrokeStyle(1, 0x440000, 0.9));
 
     // HP bar fill (two layers for gradient feel)
-    this.hpBarFg = scene.add.rectangle(barX, barY, barW, barH, 0xcc1a1a).setOrigin(0, 0);
-    this.hpBarFgShine = scene.add.rectangle(barX, barY, barW, 5, 0xee5555, 0.7).setOrigin(0, 0);
+    this.hpBarFg = this.t(scene.add.rectangle(barX, barY, barW, barH, 0xcc1a1a).setOrigin(0, 0));
+    this.hpBarFgShine = this.t(scene.add.rectangle(barX, barY, barW, 5, 0xee5555, 0.7).setOrigin(0, 0));
 
     // HP text
-    this.hpText = scene.add.text(barX + barW - 2, barY + barH / 2, '100 / 100', {
+    this.hpText = this.t(scene.add.text(barX + barW - 2, barY + barH / 2, '100 / 100', {
       fontSize: '11px',
       color: '#ddcccc',
-      fontFamily: 'monospace',
-    }).setOrigin(1, 0.5);
+      fontFamily: GAME_FONT_FAMILY,
+    }).setOrigin(1, 0.5));
   }
 
   // ── Coin panel (top-right) ─────────────────────────────────────
 
   private buildCoinPanel(scene: Phaser.Scene) {
+    const vw = scene.scale.width;
     const pw = 108, ph = 40;
-    const px = VW - pw - 8, py = 8;
+    const px = vw - pw - 8, py = 8;
 
-    const panelGfx = scene.add.graphics();
+    const panelGfx = this.t(scene.add.graphics());
     panelGfx.fillStyle(PANEL_BG, 0.82);
     panelGfx.fillRect(px, py, pw, ph);
     panelGfx.lineStyle(1, PANEL_EDGE, 0.9);
@@ -107,7 +131,7 @@ export class HUD {
 
     // Coin icon
     const cx = px + 18, cy = py + ph / 2;
-    const coinGfx = scene.add.graphics();
+    const coinGfx = this.t(scene.add.graphics());
     coinGfx.fillStyle(0x997700);
     coinGfx.fillCircle(cx, cy, 9);
     coinGfx.fillStyle(0xeeaa00);
@@ -120,26 +144,28 @@ export class HUD {
     coinGfx.strokeCircle(cx, cy, 9);
 
     // Coin count text
-    this.coinText = scene.add.text(px + 32, py + ph / 2, '0', {
+    this.coinText = this.t(scene.add.text(px + 32, py + ph / 2, '0', {
       fontSize: '15px',
       color: '#ffcc00',
-      fontFamily: 'monospace',
-    }).setOrigin(0, 0.5);
+      fontFamily: GAME_FONT_FAMILY,
+    }).setOrigin(0, 0.5));
   }
 
   // ── Weapon slot panels (bottom-center) ────────────────────────
 
   private buildSlotPanels(scene: Phaser.Scene) {
+    const vw = scene.scale.width;
+    const vh = scene.scale.height;
     const S = this.SLOT_SIZE;
     const gap = 10;
     const totalW = S * 2 + gap + 32; // extra for labels on the side
-    const panelX = VW / 2 - totalW / 2 - 8;
-    const panelY = VH - 90;
+    const panelX = vw / 2 - totalW / 2 - 8;
+    const panelY = vh - 90;
     const panelW = totalW + 16;
     const panelH = 82;
 
     // Outer panel
-    const panelGfx = scene.add.graphics();
+    const panelGfx = this.t(scene.add.graphics());
     panelGfx.fillStyle(PANEL_BG, 0.85);
     panelGfx.fillRect(panelX, panelY, panelW, panelH);
     panelGfx.lineStyle(1, PANEL_EDGE, 0.9);
@@ -149,8 +175,8 @@ export class HUD {
 
     // Slot positions
     const slotCenterY = panelY + panelH / 2;
-    const slot1X = VW / 2 - S - gap / 2;
-    const slot2X = VW / 2 + gap / 2;
+    const slot1X = vw / 2 - S - gap / 2;
+    const slot2X = vw / 2 + gap / 2;
     this.slotXs = [slot1X, slot2X];
     this.slotTopY = slotCenterY - S / 2;
 
@@ -166,64 +192,64 @@ export class HUD {
       const sx = this.slotXs[i];
 
       // Glow halo behind the slot (tinted with rarity color when equipped)
-      const glow = scene.add.rectangle(sx - 4, slotCenterY - S / 2 - 4, S + 8, S + 8, 0x000000, 0)
-        .setOrigin(0, 0);
+      const glow = this.t(scene.add.rectangle(sx - 4, slotCenterY - S / 2 - 4, S + 8, S + 8, 0x000000, 0)
+        .setOrigin(0, 0));
       this.slotGlows.push(glow);
 
       // Slot box background
-      const box = scene.add.rectangle(sx, slotCenterY - S / 2, S, S, 0x060810, 0.92)
-        .setOrigin(0, 0);
+      const box = this.t(scene.add.rectangle(sx, slotCenterY - S / 2, S, S, 0x060810, 0.92)
+        .setOrigin(0, 0));
       box.setStrokeStyle(1.5, 0x333344, 1);
       this.slotBoxes.push(box);
 
       // Dark inner area (slightly lighter than box bg — creates depth)
-      scene.add.rectangle(sx + 3, slotCenterY - S / 2 + 3, S - 6, S - 6, 0x0a0c18, 0.5)
-        .setOrigin(0, 0);
+      this.t(scene.add.rectangle(sx + 3, slotCenterY - S / 2 + 3, S - 6, S - 6, 0x0a0c18, 0.5)
+        .setOrigin(0, 0));
 
       // Weapon sprite icon — hidden until a weapon is equipped.
-      const sprite = scene.add.image(sx + S / 2, slotCenterY, 'sword-projectile')
+      const sprite = this.t(scene.add.image(sx + S / 2, slotCenterY, 'sword-projectile')
         .setScale(1.5)
         .setRotation(-Math.PI / 4)
         .setAlpha(0.92)
-        .setVisible(false);
+        .setVisible(false));
       this.slotSprites.push(sprite);
 
       // Cooldown overlay Graphics (redrawn each frame)
-      const cdGfx = scene.add.graphics();
+      const cdGfx = this.t(scene.add.graphics());
       this.slotCooldownGfx.push(cdGfx);
 
       // Control label above slot
-      scene.add.text(sx + S / 2, slotCenterY - S / 2 - 14, labels[i], {
+      this.t(scene.add.text(sx + S / 2, slotCenterY - S / 2 - 14, labels[i], {
         fontSize: '9px',
         color: '#4a5888',
-        fontFamily: 'monospace',
-      }).setOrigin(0.5, 0.5);
+        fontFamily: GAME_FONT_FAMILY,
+      }).setOrigin(0.5, 0.5));
 
       // Slot number/indicator
-      scene.add.text(sx + 4, slotCenterY - S / 2 + 4, `${i + 1}`, {
+      this.t(scene.add.text(sx + 4, slotCenterY - S / 2 + 4, `${i + 1}`, {
         fontSize: '9px',
         color: '#333355',
-        fontFamily: 'monospace',
-      }).setOrigin(0, 0);
+        fontFamily: GAME_FONT_FAMILY,
+      }).setOrigin(0, 0));
 
       // Weapon name + rarity text (below slot content area)
-      const nameText = scene.add.text(sx + S / 2, slotCenterY + S / 2 + 6, 'Empty', {
+      const nameText = this.t(scene.add.text(sx + S / 2, slotCenterY + S / 2 + 6, 'Empty', {
         fontSize: '9px',
         color: '#444455',
-        fontFamily: 'monospace',
+        fontFamily: GAME_FONT_FAMILY,
         align: 'center',
-      }).setOrigin(0.5, 0);
+      }).setOrigin(0.5, 0));
       this.slotNameTexts.push(nameText);
 
       // Hoverable zone for tooltip — captures the slot index via closure
       const slotIdx = i;
-      const zone = scene.add
+      const zone = this.t(scene.add
         .zone(sx, slotCenterY - S / 2, S, S)
         .setOrigin(0, 0)
         .setInteractive(
           new Phaser.Geom.Rectangle(0, 0, S, S),
           Phaser.Geom.Rectangle.Contains,
-        );
+        ));
 
       zone.on('pointerover', (pointer: Phaser.Input.Pointer) => {
         if (scene.scene.isActive('InventoryScene')) return;
@@ -243,20 +269,22 @@ export class HUD {
   // ── Interaction prompt ─────────────────────────────────────────
 
   private buildInteractPrompt(scene: Phaser.Scene) {
+    const vw = scene.scale.width;
+    const vh = scene.scale.height;
     const pw = 230, ph = 38;
-    const px = VW / 2 - pw / 2;
-    const py = VH - 140;
+    const px = vw / 2 - pw / 2;
+    const py = vh - 140;
 
-    this.promptPanel = scene.add.graphics();
+    this.promptPanel = this.t(scene.add.graphics());
 
     // Drawn in update() when toggling visibility — just set up the object.
     this.promptPanel.setVisible(false);
 
-    this.promptText = scene.add.text(VW / 2, py + ph / 2, '[  E  ]  Open Chest', {
+    this.promptText = this.t(scene.add.text(vw / 2, py + ph / 2, '[  E  ]  Open Chest', {
       fontSize: '13px',
       color: '#f0e080',
-      fontFamily: 'monospace',
-    }).setOrigin(0.5, 0.5).setVisible(false);
+      fontFamily: GAME_FONT_FAMILY,
+    }).setOrigin(0.5, 0.5).setVisible(false));
 
     // Pre-draw the panel geometry (it's static, just toggled visible).
     this.promptPanel.fillStyle(PANEL_BG, 0.92);
@@ -270,11 +298,13 @@ export class HUD {
   // ── Inventory hint (below slot panel) ─────────────────────────
 
   private buildInventoryHint(scene: Phaser.Scene) {
-    this.inventoryHint = scene.add.text(VW / 2, VH - 6, '[I]  Inventory', {
+    const vw = scene.scale.width;
+    const vh = scene.scale.height;
+    this.inventoryHint = this.t(scene.add.text(vw / 2, vh - 6, '[I]  Inventory', {
       fontSize: '9px',
       color: '#2a3540',
-      fontFamily: 'monospace',
-    }).setOrigin(0.5, 1);
+      fontFamily: GAME_FONT_FAMILY,
+    }).setOrigin(0.5, 1));
   }
 
   // ── Per-frame update ───────────────────────────────────────────
@@ -356,9 +386,6 @@ export class HUD {
     if (data.cooldownFraction > 0.02) {
       cdGfx.fillStyle(0x000000, 0.72);
       cdGfx.fillRect(sx, sy, S, S * data.cooldownFraction);
-
-      // Cooldown fraction text at center of overlay
-      // (handled via text object updated separately would need tracking; skip for now)
     }
   }
 

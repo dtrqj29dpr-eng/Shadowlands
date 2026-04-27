@@ -31,7 +31,9 @@ export class Chest extends Phaser.Physics.Arcade.Sprite {
     ];
 
     for (const weapon of loot) {
-      inventory.addWeapon(weapon);
+      if (inventory.addWeapon(weapon)) {
+        this.scene.events.emit('lootReceived', weapon);
+      }
     }
 
     this.scene.tweens.add({

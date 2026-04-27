@@ -8,8 +8,8 @@ import { InventoryScene } from './game/scenes/InventoryScene';
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
   title: GAME_CONFIG.title,
-  width: GAME_CONFIG.viewport.width,
-  height: GAME_CONFIG.viewport.height,
+  width: window.innerWidth,
+  height: window.innerHeight,
   backgroundColor: '#0a0a14',
   physics: {
     default: 'arcade',
@@ -20,7 +20,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   scene: [BootScene, GameScene, UIScene, InventoryScene],
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
   },
   input: {

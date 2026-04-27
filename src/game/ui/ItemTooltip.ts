@@ -1,9 +1,6 @@
 import Phaser from 'phaser';
 import type { TooltipItemData } from '../types/GameTypes';
-import { GAME_CONFIG } from '../config/GameConfig';
-
-const VW = GAME_CONFIG.viewport.width;
-const VH = GAME_CONFIG.viewport.height;
+import { GAME_FONT_FAMILY } from '../config/FontConfig';
 
 const TOOLTIP_W = 200;
 const PAD = 12;
@@ -36,17 +33,23 @@ export class ItemTooltip {
     this.container.setVisible(false);
   }
 
+  destroy(): void {
+    this.container.destroy(true);
+  }
+
   // ── Private helpers ──────────────────────────────────────────────
 
   private setPos(cursorX: number, cursorY: number): void {
+    const vw = this.container.scene.scale.width;
+    const vh = this.container.scene.scale.height;
     const offset = 14;
     let x = cursorX - TOOLTIP_W / 2;
     let y = cursorY - this.currentHeight - offset;
 
-    x = Math.max(4, Math.min(VW - TOOLTIP_W - 4, x));
+    x = Math.max(4, Math.min(vw - TOOLTIP_W - 4, x));
     // If tooltip would clip above the top edge, flip below cursor instead.
     y = y < 4 ? cursorY + offset : y;
-    y = Math.min(VH - this.currentHeight - 4, y);
+    y = Math.min(vh - this.currentHeight - 4, y);
 
     this.container.setPosition(x, y);
   }
@@ -58,7 +61,7 @@ export class ItemTooltip {
     let y = PAD;
 
     const nameTxt = scene.add.text(PAD, y, data.name, {
-      fontSize: '13px', color: '#ddeeff', fontFamily: 'monospace', fontStyle: 'bold',
+      fontSize: '13px', color: '#ddeeff', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
     });
     y += nameTxt.height + 3;
 
@@ -72,10 +75,10 @@ export class ItemTooltip {
       const statObjects: Phaser.GameObjects.Text[] = [];
       for (const stat of data.stats) {
         const lbl = scene.add.text(PAD, y, stat.label, {
-          fontSize: '10px', color: '#667788', fontFamily: 'monospace',
+          fontSize: '10px', color: '#667788', fontFamily: GAME_FONT_FAMILY,
         });
         const val = scene.add.text(TOOLTIP_W - PAD, y, stat.value, {
-          fontSize: '10px', color: '#ddeeff', fontFamily: 'monospace',
+          fontSize: '10px', color: '#ddeeff', fontFamily: GAME_FONT_FAMILY,
         }).setOrigin(1, 0);
         statObjects.push(lbl, val);
         y += lbl.height + ROW_GAP;
@@ -86,7 +89,7 @@ export class ItemTooltip {
       y += 6;
 
       const rarityTxt = scene.add.text(PAD, y, data.rarity, {
-        fontSize: '10px', color: colorHex, fontFamily: 'monospace',
+        fontSize: '10px', color: colorHex, fontFamily: GAME_FONT_FAMILY,
       });
       y += rarityTxt.height + PAD;
       const totalHeight = y;
@@ -107,7 +110,7 @@ export class ItemTooltip {
 
     // HUD layout: name → rarity → divider → item type + attack type → divider → stats
     const rarityTxt = scene.add.text(PAD, y, data.rarity, {
-      fontSize: '10px', color: colorHex, fontFamily: 'monospace',
+      fontSize: '10px', color: colorHex, fontFamily: GAME_FONT_FAMILY,
     });
     y += rarityTxt.height + 8;
 
@@ -115,12 +118,12 @@ export class ItemTooltip {
     y += 6;
 
     const typeTxt = scene.add.text(PAD, y, data.itemType ?? '', {
-      fontSize: '10px', color: '#778899', fontFamily: 'monospace',
+      fontSize: '10px', color: '#778899', fontFamily: GAME_FONT_FAMILY,
     });
     y += typeTxt.height + 2;
 
     const atkTxt = scene.add.text(PAD, y, data.attackType ?? '', {
-      fontSize: '9px', color: '#5566aa', fontFamily: 'monospace',
+      fontSize: '9px', color: '#5566aa', fontFamily: GAME_FONT_FAMILY,
     });
     y += atkTxt.height + 8;
 
@@ -130,10 +133,10 @@ export class ItemTooltip {
     const statObjects: Phaser.GameObjects.Text[] = [];
     for (const stat of data.stats) {
       const lbl = scene.add.text(PAD, y, stat.label, {
-        fontSize: '10px', color: '#667788', fontFamily: 'monospace',
+        fontSize: '10px', color: '#667788', fontFamily: GAME_FONT_FAMILY,
       });
       const val = scene.add.text(TOOLTIP_W - PAD, y, stat.value, {
-        fontSize: '10px', color: '#ddeeff', fontFamily: 'monospace',
+        fontSize: '10px', color: '#ddeeff', fontFamily: GAME_FONT_FAMILY,
       }).setOrigin(1, 0);
       statObjects.push(lbl, val);
       y += lbl.height + ROW_GAP;

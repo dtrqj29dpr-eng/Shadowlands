@@ -3,9 +3,7 @@ import type { InventorySystem } from '../systems/InventorySystem';
 import type { Player } from '../entities/Player';
 import type { Weapon } from '../combat/Weapon';
 import { ItemTooltip } from '../ui/ItemTooltip';
-
-const VW = 800;
-const VH = 600;
+import { GAME_FONT_FAMILY } from '../config/FontConfig';
 
 const CARD_W = 90;
 const CARD_H = 68;
@@ -14,9 +12,6 @@ const COLS = 4;
 
 const PANEL_X = 20;
 const PANEL_Y = 22;
-const PANEL_W = 760;
-const PANEL_H = 554;
-
 const DIVIDER_X = PANEL_X + 296;
 const LEFT_X = PANEL_X + 14;
 const RIGHT_X = DIVIDER_X + 14;
@@ -45,6 +40,11 @@ export class InventoryScene extends Phaser.Scene {
   }
 
   create() {
+    const VW = this.scale.width;
+    const VH = this.scale.height;
+    const PANEL_W = VW - 40;
+    const PANEL_H = VH - 46;
+
     // Full-canvas dim overlay
     this.add.rectangle(0, 0, VW, VH, 0x000000, 0.75).setOrigin(0, 0);
 
@@ -65,19 +65,19 @@ export class InventoryScene extends Phaser.Scene {
     );
 
     this.add.text(PANEL_X + 14, PANEL_Y + 17, 'INVENTORY', {
-      fontSize: '16px', color: '#aabbdd', fontFamily: 'monospace', fontStyle: 'bold',
+      fontSize: '16px', color: '#aabbdd', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
     }).setOrigin(0, 0.5);
 
     this.add.text(PANEL_X + PANEL_W - 14, PANEL_Y + 17, '[I] or [Esc]  Close', {
-      fontSize: '10px', color: '#44566a', fontFamily: 'monospace',
+      fontSize: '10px', color: '#44566a', fontFamily: GAME_FONT_FAMILY,
     }).setOrigin(1, 0.5);
 
     this.add.text(LEFT_X, CONTENT_Y - 12, 'EQUIPPED', {
-      fontSize: '10px', color: '#55667a', fontFamily: 'monospace', fontStyle: 'bold',
+      fontSize: '10px', color: '#55667a', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
     }).setOrigin(0, 1);
 
     this.add.text(RIGHT_X, CONTENT_Y - 12, 'COLLECTED', {
-      fontSize: '10px', color: '#55667a', fontFamily: 'monospace', fontStyle: 'bold',
+      fontSize: '10px', color: '#55667a', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
     }).setOrigin(0, 1);
 
     this.iKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.I);
@@ -85,6 +85,12 @@ export class InventoryScene extends Phaser.Scene {
 
     this.tooltip = new ItemTooltip(this);
     this.rebuildDisplay();
+
+    this.scale.on('resize', () => {
+      if (!this.scene.isActive()) return;
+      this.scene.restart();
+    }, this);
+    this.events.once('shutdown', () => this.scale.off('resize', undefined, this));
   }
 
   update() {
@@ -132,7 +138,7 @@ export class InventoryScene extends Phaser.Scene {
       this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, false, targetable);
 
       const bindLabel = this.add.text(cardX + 6, cardY + 7, binding, {
-        fontSize: '9px', color: '#3d4f5f', fontFamily: 'monospace',
+        fontSize: '9px', color: '#3d4f5f', fontFamily: GAME_FONT_FAMILY,
       }).setOrigin(0, 0);
       this.dynamicObjects.push(bindLabel);
 
@@ -146,12 +152,12 @@ export class InventoryScene extends Phaser.Scene {
         this.dynamicObjects.push(weaponSprite);
 
         const nameText = this.add.text(cardX + cardW / 2, cardY + 67, weapon.displayName, {
-          fontSize: '13px', color: '#ddeeff', fontFamily: 'monospace',
+          fontSize: '13px', color: '#ddeeff', fontFamily: GAME_FONT_FAMILY,
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(nameText);
 
         const rarityText = this.add.text(cardX + cardW / 2, cardY + 82, weapon.rarity, {
-          fontSize: '10px', color: colorHex, fontFamily: 'monospace',
+          fontSize: '10px', color: colorHex, fontFamily: GAME_FONT_FAMILY,
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(rarityText);
 
@@ -160,7 +166,7 @@ export class InventoryScene extends Phaser.Scene {
           ? { text: '→ equip here', color: '#2a4060' }
           : { text: 'Empty',       color: '#252535' };
         const emptyText = this.add.text(cardX + cardW / 2, cardY + cardH / 2, label.text, {
-          fontSize: '13px', color: label.color, fontFamily: 'monospace',
+          fontSize: '13px', color: label.color, fontFamily: GAME_FONT_FAMILY,
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(emptyText);
       }
@@ -245,13 +251,13 @@ export class InventoryScene extends Phaser.Scene {
         this.dynamicObjects.push(weaponSprite);
 
         const nameText = this.add.text(cx + CARD_W / 2, cy + 47, weapon.displayName, {
-          fontSize: '9px', color: '#ccdde8', fontFamily: 'monospace',
+          fontSize: '9px', color: '#ccdde8', fontFamily: GAME_FONT_FAMILY,
           align: 'center', wordWrap: { width: CARD_W - 8 },
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(nameText);
 
         const rarityText = this.add.text(cx + CARD_W / 2, cy + 59, weapon.rarity, {
-          fontSize: '8px', color: colorHex, fontFamily: 'monospace',
+          fontSize: '8px', color: colorHex, fontFamily: GAME_FONT_FAMILY,
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(rarityText);
 
