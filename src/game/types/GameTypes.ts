@@ -106,3 +106,13 @@ export interface TooltipItemData {
   stats: TooltipStatRow[];
   rarityAtBottom?: boolean;
 }
+
+export type ItemCategory = 'weapons' | 'artifacts';
+
+export interface ArtifactDefinition {
+  id: string;
+  displayName: string;
+  textureKey: string;
+  baseRarity: Rarity;
+  description: string;
+}

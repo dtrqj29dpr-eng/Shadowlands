@@ -6,6 +6,7 @@ import { Chest } from '../entities/objects/Chest';
 import { ResourceSystem } from '../systems/ResourceSystem';
 import { InputSystem } from '../systems/InputSystem';
 import { InventorySystem } from '../systems/InventorySystem';
+import { ArtifactInventory } from '../systems/ArtifactInventory';
 import { DropSystem } from '../systems/DropSystem';
 import { EnemySpawner } from '../systems/EnemySpawner';
 import { CollisionSystem } from '../systems/CollisionSystem';
@@ -16,6 +17,7 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
   player!: Player;
   resourceSystem!: ResourceSystem;
   inventorySystem!: InventorySystem;
+  artifactInventory!: ArtifactInventory;
 
   enemyGroup!: Phaser.Physics.Arcade.Group;
   projectileGroup!: Phaser.Physics.Arcade.Group;
@@ -48,6 +50,7 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
 
     this.resourceSystem = new ResourceSystem();
     this.inventorySystem = new InventorySystem();
+    this.artifactInventory = new ArtifactInventory();
     this.inputSystem = new InputSystem(this);
     this.dropSystem = new DropSystem(this, this.coinGroup, this.resourceSystem);
 
@@ -106,6 +109,7 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
     if (Phaser.Input.Keyboard.JustDown(this.inventoryKey)) {
       this.scene.launch('InventoryScene', {
         inventorySystem: this.inventorySystem,
+        artifactInventory: this.artifactInventory,
         player: this.player,
       });
       this.scene.pause();

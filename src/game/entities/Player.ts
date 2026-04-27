@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { GAME_CONFIG } from '../config/GameConfig';
 import { WeaponSlot } from '../combat/WeaponSlot';
 import type { Weapon } from '../combat/Weapon';
+import type { Artifact } from '../combat/Artifact';
 import type { PlayerAttributes, PlayerStats, SlotData, TooltipItemData } from '../types/GameTypes';
 
 export class Player extends Phaser.Physics.Arcade.Sprite {
@@ -13,6 +14,8 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
   readonly slot1: WeaponSlot;
   readonly slot2: WeaponSlot;
+
+  private artifactSlots: (Artifact | null)[] = [null, null, null];
 
   private cursors!: {
     up: Phaser.Input.Keyboard.Key;
@@ -169,4 +172,22 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     const weapon = this.getEquippedWeapon(slotIndex);
     return weapon ? weapon.getTooltipData() : null;
   }
+
+  getUnlockedArtifactSlotCount(): number { return this.artifactSlots.length; }
+
+  getEquippedArtifact(slotIndex: number): Artifact | null {
+    return this.artifactSlots[slotIndex] ?? null;
+  }
+
+  equipArtifact(artifact: Artifact, slotIndex: number): void {
+    this.artifactSlots[slotIndex] = artifact;
+  }
+
+  unequipArtifact(slotIndex: number): Artifact | null {
+    const a = this.artifactSlots[slotIndex] ?? null;
+    this.artifactSlots[slotIndex] = null;
+    return a;
+  }
+
+  unlockArtifactSlot(): void { this.artifactSlots.push(null); }
 }

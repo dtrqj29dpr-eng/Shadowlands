@@ -373,6 +373,24 @@ export class BootScene extends Phaser.Scene {
     gfx.generateTexture('ruin-wall', 64, 24);
     gfx.clear();
 
+    // ── Artifact placeholder (32×32) — glowing diamond gem ────────
+    gfx.fillStyle(0x3a1166, 1);
+    gfx.fillTriangle(16, 2, 30, 16, 16, 30);       // right half of diamond
+    gfx.fillTriangle(16, 2, 2, 16, 16, 30);         // left half of diamond
+    gfx.fillStyle(0x7733cc, 0.9);
+    gfx.fillTriangle(16, 4, 28, 16, 16, 28);
+    gfx.fillTriangle(16, 4, 4, 16, 16, 28);
+    gfx.fillStyle(0xaa66ee, 0.7);
+    gfx.fillTriangle(16, 4, 28, 16, 16, 14);        // upper shine facet
+    gfx.fillStyle(0xddaaff, 0.5);
+    gfx.fillTriangle(13, 7, 19, 7, 16, 4);          // top specular
+    gfx.lineStyle(1, 0x9944dd, 0.9);
+    gfx.strokeTriangle(16, 2, 30, 16, 16, 30);
+    gfx.strokeTriangle(16, 2, 2, 16, 16, 30);
+
+    gfx.generateTexture('artifact', 32, 32);
+    gfx.clear();
+
     gfx.destroy();
   }
 }
