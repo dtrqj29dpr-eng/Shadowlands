@@ -37,7 +37,6 @@ export class UIScene extends Phaser.Scene {
       player.getSlotData(1),
       player.getSlotData(2),
       this.gameScene.isNearChest(),
-      inventorySystem.getCount(),
       player.getSlotTooltipData(1),
       player.getSlotTooltipData(2),
     );

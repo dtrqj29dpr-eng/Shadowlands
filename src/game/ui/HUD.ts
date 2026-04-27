@@ -32,9 +32,6 @@ export class HUD {
   private promptPanel!: Phaser.GameObjects.Graphics;
   private promptText!: Phaser.GameObjects.Text;
 
-  // Inventory hint
-  private inventoryHint!: Phaser.GameObjects.Text;
-
   // Tooltip
   private tooltip!: ItemTooltip;
   private slotTooltipData: [TooltipItemData | null, TooltipItemData | null] = [null, null];
@@ -50,7 +47,6 @@ export class HUD {
     this.buildCoinPanel(scene);
     this.buildSlotPanels(scene);
     this.buildInteractPrompt(scene);
-    this.buildInventoryHint(scene);
     this.tooltip = new ItemTooltip(scene);
     this.lootFeed = new LootFeed(scene);
   }
@@ -186,8 +182,6 @@ export class HUD {
     this.slotNameTexts = [];
     this.slotSprites = [];
 
-    const labels = ['LMB', 'RMB'];
-
     for (let i = 0; i < 2; i++) {
       const sx = this.slotXs[i];
 
@@ -217,13 +211,6 @@ export class HUD {
       // Cooldown overlay Graphics (redrawn each frame)
       const cdGfx = this.t(scene.add.graphics());
       this.slotCooldownGfx.push(cdGfx);
-
-      // Control label above slot
-      this.t(scene.add.text(sx + S / 2, slotCenterY - S / 2 - 14, labels[i], {
-        fontSize: '9px',
-        color: '#4a5888',
-        fontFamily: GAME_FONT_FAMILY,
-      }).setOrigin(0.5, 0.5));
 
       // Slot number/indicator
       this.t(scene.add.text(sx + 4, slotCenterY - S / 2 + 4, `${i + 1}`, {
@@ -280,7 +267,7 @@ export class HUD {
     // Drawn in update() when toggling visibility — just set up the object.
     this.promptPanel.setVisible(false);
 
-    this.promptText = this.t(scene.add.text(vw / 2, py + ph / 2, '[  E  ]  Open Chest', {
+    this.promptText = this.t(scene.add.text(vw / 2, py + ph / 2, 'Open Chest', {
       fontSize: '13px',
       color: '#f0e080',
       fontFamily: GAME_FONT_FAMILY,
@@ -295,18 +282,6 @@ export class HUD {
     this.promptPanel.strokeRect(px + 2, py + 2, pw - 4, ph - 4);
   }
 
-  // ── Inventory hint (below slot panel) ─────────────────────────
-
-  private buildInventoryHint(scene: Phaser.Scene) {
-    const vw = scene.scale.width;
-    const vh = scene.scale.height;
-    this.inventoryHint = this.t(scene.add.text(vw / 2, vh - 6, '[I]  Inventory', {
-      fontSize: '9px',
-      color: '#2a3540',
-      fontFamily: GAME_FONT_FAMILY,
-    }).setOrigin(0.5, 1));
-  }
-
   // ── Per-frame update ───────────────────────────────────────────
 
   update(
@@ -315,7 +290,6 @@ export class HUD {
     slot1Data: SlotData,
     slot2Data: SlotData,
     showInteractPrompt: boolean,
-    inventoryCount: number,
     slot1Tooltip: TooltipItemData | null,
     slot2Tooltip: TooltipItemData | null,
   ) {
@@ -325,7 +299,6 @@ export class HUD {
     this.updateSlot(1, slot2Data);
     this.promptPanel.setVisible(showInteractPrompt);
     this.promptText.setVisible(showInteractPrompt);
-    this.inventoryHint.setColor(inventoryCount > 0 ? '#4a6688' : '#2a3540');
     this.slotTooltipData[0] = slot1Tooltip;
     this.slotTooltipData[1] = slot2Tooltip;
     // Hide tooltip if the weapon was unequipped while hovered.

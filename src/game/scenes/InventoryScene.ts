@@ -68,10 +68,6 @@ export class InventoryScene extends Phaser.Scene {
       fontSize: '16px', color: '#aabbdd', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
     }).setOrigin(0, 0.5);
 
-    this.add.text(PANEL_X + PANEL_W - 14, PANEL_Y + 17, '[I] or [Esc]  Close', {
-      fontSize: '10px', color: '#44566a', fontFamily: GAME_FONT_FAMILY,
-    }).setOrigin(1, 0.5);
-
     this.add.text(LEFT_X, CONTENT_Y - 12, 'EQUIPPED', {
       fontSize: '10px', color: '#55667a', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
     }).setOrigin(0, 1);
