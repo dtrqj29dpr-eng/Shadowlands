@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { HUD } from '../ui/HUD';
 import type { GameScene } from './GameScene';
 import type { Weapon } from '../combat/Weapon';
+import type { MinimapData } from '../types/GameTypes';
+import { GAME_CONFIG } from '../config/GameConfig';
 
 export class UIScene extends Phaser.Scene {
   private hud!: HUD;
@@ -28,8 +30,33 @@ export class UIScene extends Phaser.Scene {
   }
 
   update() {
-    const { player, resourceSystem, inventorySystem } = this.gameScene;
+    const { player, resourceSystem } = this.gameScene;
     if (!player) return;
+
+    const cam = this.gameScene.cameras.main;
+    const { width: wW, height: wH } = GAME_CONFIG.world;
+
+    const enemies = this.gameScene.enemyGroup.getChildren()
+      .filter(e => e.active)
+      .map(e => ({ x: (e as unknown as { x: number }).x, y: (e as unknown as { y: number }).y }));
+
+    const coins = this.gameScene.coinGroup.getChildren()
+      .filter(c => c.active)
+      .map(c => ({ x: (c as unknown as { x: number }).x, y: (c as unknown as { y: number }).y }));
+
+    const minimapData: MinimapData = {
+      worldWidth:    wW,
+      worldHeight:   wH,
+      playerX:       player.x,
+      playerY:       player.y,
+      enemies,
+      chest:         this.gameScene.getChestData(),
+      coins,
+      cameraScrollX: cam.scrollX,
+      cameraScrollY: cam.scrollY,
+      cameraWidth:   cam.width,
+      cameraHeight:  cam.height,
+    };
 
     this.hud.update(
       player.getStats(),
@@ -39,6 +66,7 @@ export class UIScene extends Phaser.Scene {
       this.gameScene.isNearChest(),
       player.getSlotTooltipData(1),
       player.getSlotTooltipData(2),
+      minimapData,
     );
   }
 }

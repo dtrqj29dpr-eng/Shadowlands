@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
-import type { PlayerStats, SlotData, TooltipItemData } from '../types/GameTypes';
+import type { PlayerStats, SlotData, TooltipItemData, MinimapData } from '../types/GameTypes';
 import { GAME_FONT_FAMILY } from '../config/FontConfig';
 import { ItemTooltip } from './ItemTooltip';
 import { LootFeed } from './LootFeed';
+import { Minimap } from './Minimap';
 import type { Weapon } from '../combat/Weapon';
 
 // Shared dark-fantasy panel style.
@@ -39,6 +40,9 @@ export class HUD {
   // Loot feed
   private lootFeed!: LootFeed;
 
+  // Minimap
+  private minimap!: Minimap;
+
   // All game objects created by this HUD (for cleanup on resize).
   private created: Phaser.GameObjects.GameObject[] = [];
 
@@ -47,6 +51,7 @@ export class HUD {
     this.buildCoinPanel(scene);
     this.buildSlotPanels(scene);
     this.buildInteractPrompt(scene);
+    this.buildMinimap(scene);
     this.tooltip = new ItemTooltip(scene);
     this.lootFeed = new LootFeed(scene);
   }
@@ -66,6 +71,7 @@ export class HUD {
     this.created = [];
     this.tooltip.destroy();
     this.lootFeed.destroy();
+    this.minimap.destroy();
   }
 
   // ── HP panel (top-left) ────────────────────────────────────────
@@ -282,6 +288,14 @@ export class HUD {
     this.promptPanel.strokeRect(px + 2, py + 2, pw - 4, ph - 4);
   }
 
+  // ── Minimap ────────────────────────────────────────────────────
+
+  private buildMinimap(scene: Phaser.Scene) {
+    const vw = scene.scale.width;
+    const SIZE = 120, MARGIN = 8, COIN_PANEL_BOTTOM = 48;
+    this.minimap = new Minimap(scene, vw - SIZE - MARGIN, COIN_PANEL_BOTTOM + MARGIN, SIZE);
+  }
+
   // ── Per-frame update ───────────────────────────────────────────
 
   update(
@@ -292,6 +306,7 @@ export class HUD {
     showInteractPrompt: boolean,
     slot1Tooltip: TooltipItemData | null,
     slot2Tooltip: TooltipItemData | null,
+    minimapData: MinimapData,
   ) {
     this.updateHP(stats);
     this.updateCoins(coins);
@@ -303,6 +318,7 @@ export class HUD {
     this.slotTooltipData[1] = slot2Tooltip;
     // Hide tooltip if the weapon was unequipped while hovered.
     if (!slot1Tooltip && !slot2Tooltip) this.tooltip.hide();
+    this.minimap.update(minimapData);
   }
 
   private updateHP(stats: PlayerStats) {

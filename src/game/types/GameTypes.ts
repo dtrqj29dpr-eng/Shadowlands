@@ -109,6 +109,20 @@ export interface TooltipItemData {
 
 export type ItemCategory = 'weapons' | 'artifacts';
 
+export interface MinimapData {
+  worldWidth:    number;
+  worldHeight:   number;
+  playerX:       number;
+  playerY:       number;
+  enemies:       ReadonlyArray<{ x: number; y: number }>;
+  chest:         { x: number; y: number; opened: boolean } | null;
+  coins:         ReadonlyArray<{ x: number; y: number }>;
+  cameraScrollX: number;
+  cameraScrollY: number;
+  cameraWidth:   number;
+  cameraHeight:  number;
+}
+
 export interface ArtifactDefinition {
   id: string;
   displayName: string;

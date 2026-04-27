@@ -149,4 +149,8 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
     );
     return dist <= GAME_CONFIG.chest.interactRange;
   }
+
+  getChestData(): { x: number; y: number; opened: boolean } {
+    return { x: this.chest.x, y: this.chest.y, opened: this.chest.opened };
+  }
 }
