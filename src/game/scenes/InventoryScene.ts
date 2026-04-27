@@ -115,6 +115,7 @@ export class InventoryScene extends Phaser.Scene {
     const cardW = 254;
     const cardH = 100;
     const cardX = LEFT_X;
+    const targetable = this.selectedIndex >= 0;
 
     const slots: Array<{ slotNum: 1 | 2; binding: string }> = [
       { slotNum: 1, binding: 'SLOT 1  —  LMB' },
@@ -128,7 +129,7 @@ export class InventoryScene extends Phaser.Scene {
 
       const gfx = this.add.graphics();
       this.dynamicObjects.push(gfx);
-      this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, false);
+      this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, false, targetable);
 
       const bindLabel = this.add.text(cardX + 6, cardY + 7, binding, {
         fontSize: '9px', color: '#3d4f5f', fontFamily: 'monospace',
@@ -154,37 +155,51 @@ export class InventoryScene extends Phaser.Scene {
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(rarityText);
 
-        const hint = this.add.text(cardX + cardW - 6, cardY + cardH - 6, 'click to unequip', {
-          fontSize: '8px', color: '#2c3c4a', fontFamily: 'monospace',
-        }).setOrigin(1, 1);
-        this.dynamicObjects.push(hint);
-
-        const sn = slotNum;
-        const zone = this.add
-          .zone(cardX, cardY, cardW, cardH)
-          .setOrigin(0, 0)
-          .setInteractive({ useHandCursor: true });
-        zone.on('pointerup', () => this.unequipSlot(sn));
-        zone.on('pointerover', (pointer: Phaser.Input.Pointer) => {
-          gfx.clear();
-          this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, true);
-          this.tooltip.show(weapon.getInventoryTooltipData(), pointer.x, pointer.y);
-        });
-        zone.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-          this.tooltip.moveTo(pointer.x, pointer.y);
-        });
-        zone.on('pointerout', () => {
-          gfx.clear();
-          this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, false);
-          this.tooltip.hide();
-        });
-        this.dynamicObjects.push(zone);
+        if (targetable) {
+          const hint = this.add.text(cardX + cardW / 2, cardY + cardH - 7, '→ equip here', {
+            fontSize: '9px', color: '#4466aa', fontFamily: 'monospace',
+          }).setOrigin(0.5, 1);
+          this.dynamicObjects.push(hint);
+        }
       } else {
-        const emptyText = this.add.text(cardX + cardW / 2, cardY + cardH / 2, 'Empty', {
-          fontSize: '13px', color: '#252535', fontFamily: 'monospace',
+        const label = targetable
+          ? { text: '→ equip here', color: '#2a4060' }
+          : { text: 'Empty',       color: '#252535' };
+        const emptyText = this.add.text(cardX + cardW / 2, cardY + cardH / 2, label.text, {
+          fontSize: '13px', color: label.color, fontFamily: 'monospace',
         }).setOrigin(0.5, 0.5);
         this.dynamicObjects.push(emptyText);
       }
+
+      // Every equipped slot is interactive — click equips the selected item.
+      const sn = slotNum;
+      const zone = this.add
+        .zone(cardX, cardY, cardW, cardH)
+        .setOrigin(0, 0)
+        .setInteractive({ useHandCursor: true });
+
+      zone.on('pointerup', () => {
+        if (this.selectedIndex >= 0) {
+          this.equipToSlot(sn);
+        }
+        // No item selected → do nothing.
+      });
+      zone.on('pointerover', (pointer: Phaser.Input.Pointer) => {
+        gfx.clear();
+        this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, true, targetable);
+        if (weapon && !targetable) {
+          this.tooltip.show(weapon.getInventoryTooltipData(), pointer.x, pointer.y);
+        }
+      });
+      zone.on('pointermove', (pointer: Phaser.Input.Pointer) => {
+        this.tooltip.moveTo(pointer.x, pointer.y);
+      });
+      zone.on('pointerout', () => {
+        gfx.clear();
+        this.drawEquipCard(gfx, cardX, cardY, cardW, cardH, weapon, false, targetable);
+        this.tooltip.hide();
+      });
+      this.dynamicObjects.push(zone);
     }
   }
 
@@ -193,10 +208,13 @@ export class InventoryScene extends Phaser.Scene {
     x: number, y: number, w: number, h: number,
     weapon: Weapon | null,
     hover: boolean,
+    targetable: boolean,
   ) {
     gfx.fillStyle(hover ? 0x0f1220 : 0x090b17, 0.95);
     gfx.fillRect(x, y, w, h);
-    if (weapon) {
+    if (targetable) {
+      gfx.lineStyle(2, hover ? 0x7799cc : 0x2a4060, 1);
+    } else if (weapon) {
       gfx.lineStyle(2, weapon.rarityColor, hover ? 1 : 0.85);
     } else {
       gfx.lineStyle(1.5, 0x1e2030, 1);
@@ -267,11 +285,6 @@ export class InventoryScene extends Phaser.Scene {
       }
     }
 
-    // Equip buttons appear only when a non-null slot is selected
-    if (this.selectedIndex >= 0 && weapons[this.selectedIndex]) {
-      const btnY = gridY + 3 * (CARD_H + CARD_GAP) - CARD_GAP + 16;
-      this.buildEquipButtons(gridX, btnY);
-    }
   }
 
   private drawGridCard(
@@ -299,58 +312,12 @@ export class InventoryScene extends Phaser.Scene {
     }
   }
 
-  // ── Equip buttons ───────────────────────────────────────────────
-
-  private buildEquipButtons(startX: number, buttonY: number) {
-    const btnW = 158;
-    const btnH = 34;
-    const gap = 10;
-
-    const defs: Array<{ slotNum: 1 | 2; label: string }> = [
-      { slotNum: 1, label: '→  SLOT 1  (LMB)' },
-      { slotNum: 2, label: '→  SLOT 2  (RMB)' },
-    ];
-
-    for (let i = 0; i < 2; i++) {
-      const { slotNum, label } = defs[i];
-      const btnX = startX + i * (btnW + gap);
-
-      const gfx = this.add.graphics();
-      this.dynamicObjects.push(gfx);
-
-      const drawBtn = (hover: boolean) => {
-        gfx.clear();
-        gfx.fillStyle(hover ? 0x192040 : 0x0d1020, 0.96);
-        gfx.fillRect(btnX, buttonY, btnW, btnH);
-        gfx.lineStyle(1.5, hover ? 0x6688cc : 0x3a4f80, 1);
-        gfx.strokeRect(btnX, buttonY, btnW, btnH);
-      };
-      drawBtn(false);
-
-      const text = this.add.text(btnX + btnW / 2, buttonY + btnH / 2, label, {
-        fontSize: '10px', color: '#7799cc', fontFamily: 'monospace',
-      }).setOrigin(0.5, 0.5);
-      this.dynamicObjects.push(text);
-
-      const sn = slotNum;
-      const zone = this.add
-        .zone(btnX, buttonY, btnW, btnH)
-        .setOrigin(0, 0)
-        .setInteractive({ useHandCursor: true });
-      zone.on('pointerup', () => this.equipSelected(sn));
-      zone.on('pointerover', () => drawBtn(true));
-      zone.on('pointerout', () => drawBtn(false));
-      this.dynamicObjects.push(zone);
-    }
-  }
-
   // ── Equip / unequip logic ───────────────────────────────────────
 
-  private equipSelected(slotNum: 1 | 2) {
+  private equipToSlot(slotNum: 1 | 2) {
     const weapon = this.inventorySystem.getAll()[this.selectedIndex] as Weapon | null;
     if (!weapon) return;
 
-    // Swap out whatever is currently in the slot
     const existing = this.player.getEquippedWeapon(slotNum);
     if (existing) this.inventorySystem.addWeapon(existing);
 
