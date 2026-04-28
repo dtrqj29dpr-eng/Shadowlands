@@ -2,6 +2,7 @@ export type Rarity = 'Common' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic' | 'Divi
 export type WeaponType = 'throwable';
 export type AttackType = 'returning_throw';
 export type ResourceType = 'coin';
+export type MaterialType = 'wooden_log' | 'iron_bar';
 export type ProjectilePhase = 'TRAVELING' | 'RETURNING' | 'IDLE';
 export type EnemyState = 'wandering' | 'chasing';
 

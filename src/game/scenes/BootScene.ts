@@ -391,6 +391,79 @@ export class BootScene extends Phaser.Scene {
     gfx.generateTexture('artifact', 32, 32);
     gfx.clear();
 
+    // ── Wooden Log (32×20) ───────────────────────────────────────
+    gfx.fillStyle(0x3a1a06);
+    gfx.fillRect(0, 2, 32, 16);
+    gfx.fillStyle(0x6a3a14);
+    gfx.fillRect(1, 3, 30, 14);
+    // End grain ring
+    gfx.fillStyle(0x5a2e0e);
+    gfx.fillEllipse(5, 10, 8, 14);
+    gfx.fillStyle(0x8b5a2b, 0.8);
+    gfx.fillEllipse(5, 10, 5, 10);
+    gfx.fillStyle(0xaa7a3a, 0.5);
+    gfx.fillEllipse(5, 10, 2, 6);
+    // Wood grain lines
+    gfx.lineStyle(1, 0x4a2208, 0.6);
+    gfx.strokeLineShape(new Phaser.Geom.Line(10, 4, 31, 4));
+    gfx.strokeLineShape(new Phaser.Geom.Line(10, 10, 31, 10));
+    gfx.strokeLineShape(new Phaser.Geom.Line(10, 16, 31, 16));
+    gfx.lineStyle(1, 0x3a1a06, 0.8);
+    gfx.strokeRect(0, 2, 32, 16);
+
+    gfx.generateTexture('wooden-log', 32, 20);
+    gfx.clear();
+
+    // ── Iron Bar (32×14) ─────────────────────────────────────────
+    gfx.fillStyle(0x3a3a44);
+    gfx.fillRect(0, 1, 32, 12);
+    gfx.fillStyle(0x8899aa);
+    gfx.fillRect(1, 2, 30, 10);
+    // Metallic shine
+    gfx.fillStyle(0xbbccdd, 0.7);
+    gfx.fillRect(2, 2, 28, 4);
+    gfx.fillStyle(0xddeeff, 0.4);
+    gfx.fillRect(4, 2, 20, 2);
+    // Shadow edge
+    gfx.fillStyle(0x223344, 0.8);
+    gfx.fillRect(1, 10, 30, 2);
+    gfx.lineStyle(1, 0x223344, 0.9);
+    gfx.strokeRect(0, 1, 32, 12);
+
+    gfx.generateTexture('iron-bar', 32, 14);
+    gfx.clear();
+
+    // ── Iron Sword Projectile (32×10) ────────────────────────────
+    // Handle (dark leather)
+    gfx.fillStyle(0x1a1a2a);
+    gfx.fillRect(0, 1, 8, 8);
+    gfx.fillStyle(0x2a2a3a);
+    gfx.fillRect(0, 2, 8, 6);
+    gfx.lineStyle(1, 0x3a3a4a, 0.8);
+    gfx.strokeLineShape(new Phaser.Geom.Line(2, 1, 2, 9));
+    gfx.strokeLineShape(new Phaser.Geom.Line(5, 1, 5, 9));
+    // Guard
+    gfx.fillStyle(0x5a5a6a);
+    gfx.fillRect(8, 0, 3, 10);
+    gfx.fillStyle(0x8888aa);
+    gfx.fillRect(8, 2, 3, 6);
+    // Blade (brighter grey, more silver)
+    gfx.fillStyle(0xaaaacc);
+    gfx.fillRect(11, 2, 18, 6);
+    gfx.fillStyle(0xccccee);
+    gfx.fillRect(11, 2, 18, 3);
+    // Tip
+    gfx.fillStyle(0xbbbbcc);
+    gfx.fillTriangle(29, 2, 32, 5, 29, 8);
+    gfx.fillStyle(0xddddee);
+    gfx.fillTriangle(29, 2, 32, 5, 29, 4);
+    // Edge specular
+    gfx.lineStyle(1, 0xffffff, 0.6);
+    gfx.strokeLineShape(new Phaser.Geom.Line(11, 2, 29, 2));
+
+    gfx.generateTexture('iron-sword', 32, 10);
+    gfx.clear();
+
     gfx.destroy();
   }
 }

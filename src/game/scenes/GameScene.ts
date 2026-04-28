@@ -9,6 +9,7 @@ import { InventorySystem } from '../systems/InventorySystem';
 import { ArtifactInventory } from '../systems/ArtifactInventory';
 import { DropSystem } from '../systems/DropSystem';
 import { EnemySpawner } from '../systems/EnemySpawner';
+import { CraftingInventory } from '../systems/CraftingInventory';
 import { CollisionSystem } from '../systems/CollisionSystem';
 import { CombatSystem } from '../systems/CombatSystem';
 import type { IEnemySceneContext } from '../entities/enemies/BaseEnemy';
@@ -23,12 +24,15 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
   projectileGroup!: Phaser.Physics.Arcade.Group;
   coinGroup!: Phaser.Physics.Arcade.Group;
 
+  craftingInventory!: CraftingInventory;
+
   private chest!: Chest;
   private inputSystem!: InputSystem;
   private dropSystem!: DropSystem;
   private enemySpawner!: EnemySpawner;
   private combatSystem!: CombatSystem;
   private inventoryKey!: Phaser.Input.Keyboard.Key;
+  private craftingKey!: Phaser.Input.Keyboard.Key;
   private escKey!: Phaser.Input.Keyboard.Key;
 
   constructor() {
@@ -51,6 +55,7 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
     this.resourceSystem = new ResourceSystem();
     this.inventorySystem = new InventorySystem();
     this.artifactInventory = new ArtifactInventory();
+    this.craftingInventory = new CraftingInventory();
     this.inputSystem = new InputSystem(this);
     this.dropSystem = new DropSystem(this, this.coinGroup, this.resourceSystem);
 
@@ -88,6 +93,7 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
     );
 
     this.inventoryKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.I);
+    this.craftingKey  = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.C);
     this.escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
 
     this.scene.launch('UIScene');
@@ -95,7 +101,7 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
 
   update(time: number, delta: number) {
     // Don't process game input while a menu is open.
-    if (this.scene.isActive('InventoryScene')) return;
+    if (this.scene.isActive('InventoryScene') || this.scene.isActive('CraftingScene')) return;
 
     if (Phaser.Input.Keyboard.JustDown(this.escKey)) {
       this.scene.launch('PauseMenuScene');
@@ -126,7 +132,16 @@ export class GameScene extends Phaser.Scene implements IEnemySceneContext {
     }
 
     if (this.inputSystem.wasPressed('interact')) {
-      this.chest.tryInteract(this.player, this.inventorySystem, time);
+      this.chest.tryInteract(this.player, this.inventorySystem, this.craftingInventory, time);
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.craftingKey)) {
+      this.scene.launch('CraftingScene', {
+        craftingInventory: this.craftingInventory,
+        inventorySystem: this.inventorySystem,
+      });
+      this.scene.pause();
+      return;
     }
 
     this.player.update(time, delta);

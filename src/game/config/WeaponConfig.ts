@@ -11,6 +11,26 @@ export const WEAPON_TYPE_NAMES: Record<WeaponType, string> = {
 };
 
 export const WEAPON_DEFINITIONS: Record<string, WeaponDefinition> = {
+  iron_sword: {
+    id: 'iron_sword',
+    displayName: 'Iron Sword',
+    textureKey: 'iron-sword',
+    weaponType: 'throwable',
+    attackType: 'returning_throw',
+    baseRarity: 'Common',
+    damage: 12,
+    strength: 10,
+    cooldownMs: 1000,
+    throwSpeed: 460,
+    returnSpeed: 420,
+    returnAcceleration: 1000,
+    maxReturnSpeed: 1300,
+    maxRange: 290,
+    catchDistance: 24,
+    pierce: 0,
+    knockback: 100,
+    description: 'A sturdy sword forged from iron bars. Returns when thrown.',
+  },
   wooden_sword: {
     id: 'wooden_sword',
     displayName: 'Wooden Sword',
