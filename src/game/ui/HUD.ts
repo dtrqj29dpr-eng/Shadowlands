@@ -70,41 +70,40 @@ export class HUD {
     this.minimap.destroy();
   }
 
-  // ── HP panel (top-left) ────────────────────────────────────────
+  // ── HP panel (bottom-center) ───────────────────────────────────
 
   private buildHPPanel(scene: Phaser.Scene) {
-    const px = 8, py = 8, pw = 236, ph = 40;
+    const vw = scene.scale.width;
+    const vh = scene.scale.height;
+    const pw = 236, ph = 40;
+    const px = Math.round(vw / 2 - pw / 2);
+    const py = vh - ph - 8;
 
-    // Panel background
     const panelGfx = this.t(scene.add.graphics());
     panelGfx.fillStyle(PANEL_BG, 0.82);
     panelGfx.fillRect(px, py, pw, ph);
     panelGfx.lineStyle(1, PANEL_EDGE, 0.9);
     panelGfx.strokeRect(px, py, pw, ph);
-    // Inner highlight line (top edge catches light)
     panelGfx.lineStyle(1, 0x3a4a6a, 0.4);
     panelGfx.strokeLineShape(new Phaser.Geom.Line(px + 1, py + 1, px + pw - 1, py + 1));
 
-    // Heart icon (two circles + downward triangle)
+    // Heart icon (positions relative to panel origin)
     const heartGfx = this.t(scene.add.graphics());
     heartGfx.fillStyle(0xcc1111);
-    heartGfx.fillCircle(22, 26, 5);
-    heartGfx.fillCircle(28, 26, 5);
-    heartGfx.fillTriangle(17, 28, 33, 28, 25, 36);
+    heartGfx.fillCircle(px + 14, py + 18, 5);
+    heartGfx.fillCircle(px + 20, py + 18, 5);
+    heartGfx.fillTriangle(px + 9, py + 20, px + 25, py + 20, px + 17, py + 28);
     heartGfx.fillStyle(0xff4444, 0.5);
-    heartGfx.fillCircle(21, 24, 3);              // shine on heart
+    heartGfx.fillCircle(px + 13, py + 16, 3);
 
-    // HP bar track
-    const barX = 38, barY = 22, barW = 182, barH = 16;
+    const barX = px + 30, barY = py + 12, barW = 182, barH = 16;
     this.t(scene.add.rectangle(barX, barY, barW, barH, 0x220000, 0.9).setOrigin(0, 0));
     this.t(scene.add.rectangle(barX, barY, barW, barH, 0x000000, 0).setOrigin(0, 0)
       .setStrokeStyle(1, 0x440000, 0.9));
 
-    // HP bar fill (two layers for gradient feel)
     this.hpBarFg = this.t(scene.add.rectangle(barX, barY, barW, barH, 0xcc1a1a).setOrigin(0, 0));
     this.hpBarFgShine = this.t(scene.add.rectangle(barX, barY, barW, 5, 0xee5555, 0.7).setOrigin(0, 0));
 
-    // HP text
     this.hpText = this.t(scene.add.text(barX + barW - 2, barY + barH / 2, '100 / 100', {
       fontSize: '11px',
       color: '#ddcccc',
@@ -121,7 +120,7 @@ export class HUD {
     const gap = 10;
     const totalW = S * 2 + gap + 32; // extra for labels on the side
     const panelX = vw / 2 - totalW / 2 - 8;
-    const panelY = vh - 90;
+    const panelY = vh - 160;
     const panelW = totalW + 16;
     const panelH = 82;
 
@@ -225,7 +224,7 @@ export class HUD {
     const vh = scene.scale.height;
     const pw = 230, ph = 38;
     const px = vw / 2 - pw / 2;
-    const py = vh - 140;
+    const py = vh - 230;
 
     this.promptPanel = this.t(scene.add.graphics());
 
