@@ -51,6 +51,8 @@ export class InventoryScene extends Phaser.Scene {
   private dynamicObjects: Phaser.GameObjects.GameObject[] = [];
   private iKey!: Phaser.Input.Keyboard.Key;
   private escKey!: Phaser.Input.Keyboard.Key;
+  private key1!: Phaser.Input.Keyboard.Key;
+  private key2!: Phaser.Input.Keyboard.Key;
   private tooltip!: ItemTooltip;
 
   // Layout values computed in create(), reused in build methods.
@@ -114,12 +116,14 @@ export class InventoryScene extends Phaser.Scene {
     // Tab area divider
     chrome.strokeLineShape(new Phaser.Geom.Line(PANEL_X, this.tabY - 14, DX, this.tabY - 14));
 
-    this.add.text(PANEL_X + 14, PANEL_Y + 17, 'INVENTORY', {
+    this.add.text(PANEL_X + PW / 2, PANEL_Y + 17, 'INVENTORY', {
       fontSize: '16px', color: '#aabbdd', fontFamily: GAME_FONT_FAMILY, fontStyle: 'bold',
-    }).setOrigin(0, 0.5);
+    }).setOrigin(0.5, 0.5);
 
     this.iKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.I);
     this.escKey = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
+    this.key1 = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.ONE);
+    this.key2 = this.input.keyboard!.addKey(Phaser.Input.Keyboard.KeyCodes.TWO);
 
     this.tooltip = new ItemTooltip(this);
     this.rebuildDisplay();
@@ -138,6 +142,11 @@ export class InventoryScene extends Phaser.Scene {
     ) {
       this.scene.resume('GameScene');
       this.scene.stop();
+    }
+
+    if (this.activeTab === 'weapons' && this.selectedIndex >= 0) {
+      if (Phaser.Input.Keyboard.JustDown(this.key1)) this.equipWeaponToSlot(1);
+      else if (Phaser.Input.Keyboard.JustDown(this.key2)) this.equipWeaponToSlot(2);
     }
   }
 
