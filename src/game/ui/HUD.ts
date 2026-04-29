@@ -12,9 +12,17 @@ const PANEL_EDGE = 0x2a3450;
 
 export class HUD {
   // HP bar
-  private hpBarFg!: Phaser.GameObjects.Rectangle;
-  private hpBarFgShine!: Phaser.GameObjects.Rectangle;
+  private scene!: Phaser.Scene;
+  private hpBarGfx!: Phaser.GameObjects.Graphics;
   private hpText!: Phaser.GameObjects.Text;
+  private readonly HP_BAR_W = 220;
+  private readonly HP_BAR_H = 14;
+  private hpBarPosX = 0;
+  private hpBarPosY = 0;
+  private hpBarProxy = { display: 220, trail: 220 };
+  private hpDisplayTween?: Phaser.Tweens.Tween;
+  private hpTrailTween?: Phaser.Tweens.Tween;
+  private hpLastHp = -1;
 
   // Slots
   private readonly SLOT_SIZE = 56;
@@ -44,6 +52,7 @@ export class HUD {
   private created: Phaser.GameObjects.GameObject[] = [];
 
   constructor(scene: Phaser.Scene) {
+    this.scene = scene;
     this.buildHPPanel(scene);
     this.buildSlotPanels(scene);
     this.buildInteractPrompt(scene);
@@ -79,36 +88,27 @@ export class HUD {
     const px = Math.round(vw / 2 - pw / 2);
     const py = vh - ph - 8;
 
-    const panelGfx = this.t(scene.add.graphics());
-    panelGfx.fillStyle(PANEL_BG, 0.82);
-    panelGfx.fillRect(px, py, pw, ph);
-    panelGfx.lineStyle(1, PANEL_EDGE, 0.9);
-    panelGfx.strokeRect(px, py, pw, ph);
-    panelGfx.lineStyle(1, 0x3a4a6a, 0.4);
-    panelGfx.strokeLineShape(new Phaser.Geom.Line(px + 1, py + 1, px + pw - 1, py + 1));
+    // Subtle backdrop — no heavy border, just a faint dark area for readability
+    const backdropGfx = this.t(scene.add.graphics());
+    backdropGfx.fillStyle(0x000000, 0.28);
+    backdropGfx.fillRoundedRect(px, py, pw, ph, 4);
+    backdropGfx.lineStyle(1, 0x1e2a3e, 0.5);
+    backdropGfx.strokeRoundedRect(px, py, pw, ph, 4);
 
-    // Heart icon (positions relative to panel origin)
-    const heartGfx = this.t(scene.add.graphics());
-    heartGfx.fillStyle(0xcc1111);
-    heartGfx.fillCircle(px + 14, py + 18, 5);
-    heartGfx.fillCircle(px + 20, py + 18, 5);
-    heartGfx.fillTriangle(px + 9, py + 20, px + 25, py + 20, px + 17, py + 28);
-    heartGfx.fillStyle(0xff4444, 0.5);
-    heartGfx.fillCircle(px + 13, py + 16, 3);
+    const barX = px + 8;
+    const barY = py + 13;
+    this.hpBarPosX = barX;
+    this.hpBarPosY = barY;
+    this.hpBarProxy = { display: this.HP_BAR_W, trail: this.HP_BAR_W };
 
-    const barX = px + 30, barY = py + 12, barW = 182, barH = 16;
-    this.t(scene.add.rectangle(barX, barY, barW, barH, 0x220000, 0.9).setOrigin(0, 0));
-    this.t(scene.add.rectangle(barX, barY, barW, barH, 0x000000, 0).setOrigin(0, 0)
-      .setStrokeStyle(1, 0x440000, 0.9));
+    this.hpBarGfx = this.t(scene.add.graphics());
 
-    this.hpBarFg = this.t(scene.add.rectangle(barX, barY, barW, barH, 0xcc1a1a).setOrigin(0, 0));
-    this.hpBarFgShine = this.t(scene.add.rectangle(barX, barY, barW, 5, 0xee5555, 0.7).setOrigin(0, 0));
-
-    this.hpText = this.t(scene.add.text(barX + barW - 2, barY + barH / 2, '100 / 100', {
-      fontSize: '11px',
-      color: '#ddcccc',
-      fontFamily: GAME_FONT_FAMILY,
-    }).setOrigin(1, 0.5));
+    this.hpText = this.t(scene.add.text(
+      barX + this.HP_BAR_W - 2,
+      barY + this.HP_BAR_H / 2,
+      '100 / 100',
+      { fontSize: '11px', color: '#ddeeff', fontFamily: GAME_FONT_FAMILY },
+    ).setOrigin(1, 0.5));
   }
 
   // ── Weapon slot panels (bottom-center) ────────────────────────
@@ -278,26 +278,81 @@ export class HUD {
   }
 
   private updateHP(stats: PlayerStats) {
-    const barW = 182;
     const frac = Math.max(0, Math.min(1, stats.hp / stats.maxHp));
-    const fillW = Math.max(0, barW * frac);
+    const targetW = this.HP_BAR_W * frac;
 
-    this.hpBarFg.setSize(fillW, 16);
-    this.hpBarFgShine.setSize(fillW, 5);
+    if (stats.hp !== this.hpLastHp) {
+      this.hpLastHp = stats.hp;
+      const isDamage = targetW < this.hpBarProxy.display;
 
-    // Color shifts to orange/yellow at low HP.
-    if (frac < 0.25) {
-      this.hpBarFg.setFillStyle(0xee4400);
-      this.hpBarFgShine.setFillStyle(0xff8844, 0.7);
-    } else if (frac < 0.5) {
-      this.hpBarFg.setFillStyle(0xcc2200);
-      this.hpBarFgShine.setFillStyle(0xff5533, 0.7);
-    } else {
-      this.hpBarFg.setFillStyle(0xcc1a1a);
-      this.hpBarFgShine.setFillStyle(0xee5555, 0.7);
+      this.hpDisplayTween?.stop();
+      this.hpDisplayTween = this.scene.tweens.add({
+        targets: this.hpBarProxy,
+        display: targetW,
+        duration: 180,
+        ease: 'Cubic.easeOut',
+      });
+
+      if (isDamage) {
+        this.hpTrailTween?.stop();
+        this.hpTrailTween = undefined;
+        this.scene.time.delayedCall(350, () => {
+          this.hpTrailTween = this.scene.tweens.add({
+            targets: this.hpBarProxy,
+            trail: targetW,
+            duration: 600,
+            ease: 'Cubic.easeOut',
+          });
+        });
+      } else {
+        this.hpTrailTween?.stop();
+        this.hpBarProxy.trail = targetW;
+      }
     }
 
+    this.drawHPBar(frac);
     this.hpText.setText(`${stats.hp} / ${stats.maxHp}`);
+  }
+
+  private drawHPBar(frac: number) {
+    const gfx = this.hpBarGfx;
+    const x = this.hpBarPosX;
+    const y = this.hpBarPosY;
+    const w = this.HP_BAR_W;
+    const h = this.HP_BAR_H;
+    const displayW = this.hpBarProxy.display;
+    const trailW = this.hpBarProxy.trail;
+    const color = frac < 0.25 ? 0xff3355 : frac < 0.5 ? 0xffa040 : 0x40e0a0;
+
+    gfx.clear();
+
+    // Glow behind fill
+    if (displayW > 0) {
+      gfx.fillStyle(color, 0.12);
+      gfx.fillRoundedRect(x - 3, y - 3, displayW + 6, h + 6, 5);
+    }
+
+    // Track background
+    gfx.fillStyle(0x050810, 0.88);
+    gfx.fillRoundedRect(x, y, w, h, 3);
+    gfx.lineStyle(1, 0x1a2235, 0.7);
+    gfx.strokeRoundedRect(x, y, w, h, 3);
+
+    // Damage trail
+    if (trailW > displayW + 1) {
+      gfx.fillStyle(0xff7020, 0.45);
+      gfx.fillRoundedRect(x, y, Math.min(trailW, w), h, 3);
+    }
+
+    // Main fill
+    if (displayW > 0) {
+      gfx.fillStyle(color, 1);
+      gfx.fillRoundedRect(x, y, Math.max(displayW, 2), h, 3);
+
+      // Shine highlight
+      gfx.fillStyle(0xffffff, 0.10);
+      gfx.fillRoundedRect(x + 2, y + 1, Math.max(displayW - 4, 0), Math.floor(h * 0.35), 2);
+    }
   }
 
   private updateSlot(index: 0 | 1, data: SlotData) {
