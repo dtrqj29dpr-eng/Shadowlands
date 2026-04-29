@@ -16,9 +16,6 @@ export class HUD {
   private hpBarFgShine!: Phaser.GameObjects.Rectangle;
   private hpText!: Phaser.GameObjects.Text;
 
-  // Coins
-  private coinText!: Phaser.GameObjects.Text;
-
   // Slots
   private readonly SLOT_SIZE = 56;
   private slotBoxes!: Phaser.GameObjects.Rectangle[];
@@ -48,7 +45,6 @@ export class HUD {
 
   constructor(scene: Phaser.Scene) {
     this.buildHPPanel(scene);
-    this.buildCoinPanel(scene);
     this.buildSlotPanels(scene);
     this.buildInteractPrompt(scene);
     this.buildMinimap(scene);
@@ -114,43 +110,6 @@ export class HUD {
       color: '#ddcccc',
       fontFamily: GAME_FONT_FAMILY,
     }).setOrigin(1, 0.5));
-  }
-
-  // ── Coin panel (top-right) ─────────────────────────────────────
-
-  private buildCoinPanel(scene: Phaser.Scene) {
-    const vw = scene.scale.width;
-    const pw = 108, ph = 40;
-    const px = vw - pw - 8, py = 8;
-
-    const panelGfx = this.t(scene.add.graphics());
-    panelGfx.fillStyle(PANEL_BG, 0.82);
-    panelGfx.fillRect(px, py, pw, ph);
-    panelGfx.lineStyle(1, PANEL_EDGE, 0.9);
-    panelGfx.strokeRect(px, py, pw, ph);
-    panelGfx.lineStyle(1, 0x3a4a6a, 0.4);
-    panelGfx.strokeLineShape(new Phaser.Geom.Line(px + 1, py + 1, px + pw - 1, py + 1));
-
-    // Coin icon
-    const cx = px + 18, cy = py + ph / 2;
-    const coinGfx = this.t(scene.add.graphics());
-    coinGfx.fillStyle(0x997700);
-    coinGfx.fillCircle(cx, cy, 9);
-    coinGfx.fillStyle(0xeeaa00);
-    coinGfx.fillCircle(cx, cy, 7);
-    coinGfx.fillStyle(0xffcc33, 0.8);
-    coinGfx.fillEllipse(cx - 2, cy - 2, 8, 6);
-    coinGfx.fillStyle(0xffffff, 0.85);
-    coinGfx.fillCircle(cx - 3, cy - 3, 2);
-    coinGfx.lineStyle(1, 0x775500, 0.8);
-    coinGfx.strokeCircle(cx, cy, 9);
-
-    // Coin count text
-    this.coinText = this.t(scene.add.text(px + 32, py + ph / 2, '0', {
-      fontSize: '15px',
-      color: '#ffcc00',
-      fontFamily: GAME_FONT_FAMILY,
-    }).setOrigin(0, 0.5));
   }
 
   // ── Weapon slot panels (bottom-center) ────────────────────────
@@ -292,15 +251,14 @@ export class HUD {
 
   private buildMinimap(scene: Phaser.Scene) {
     const vw = scene.scale.width;
-    const SIZE = 120, MARGIN = 8, COIN_PANEL_BOTTOM = 48;
-    this.minimap = new Minimap(scene, vw - SIZE - MARGIN, COIN_PANEL_BOTTOM + MARGIN, SIZE);
+    const SIZE = 120, MARGIN = 8;
+    this.minimap = new Minimap(scene, vw - SIZE - MARGIN, MARGIN, SIZE);
   }
 
   // ── Per-frame update ───────────────────────────────────────────
 
   update(
     stats: PlayerStats,
-    coins: number,
     slot1Data: SlotData,
     slot2Data: SlotData,
     showInteractPrompt: boolean,
@@ -309,7 +267,6 @@ export class HUD {
     minimapData: MinimapData,
   ) {
     this.updateHP(stats);
-    this.updateCoins(coins);
     this.updateSlot(0, slot1Data);
     this.updateSlot(1, slot2Data);
     this.promptPanel.setVisible(showInteractPrompt);
@@ -344,10 +301,6 @@ export class HUD {
     this.hpText.setText(`${stats.hp} / ${stats.maxHp}`);
   }
 
-  private updateCoins(coins: number) {
-    this.coinText.setText(`${coins}`);
-  }
-
   private updateSlot(index: 0 | 1, data: SlotData) {
     const S = this.SLOT_SIZE;
     const sx = this.slotXs[index];
@@ -362,7 +315,7 @@ export class HUD {
       box.setStrokeStyle(2, data.rarityColor, 1);
       glow.setFillStyle(data.rarityColor, 0.12);
       nameText.setText(`${data.weaponName}\n${data.rarity}`).setColor(colorHex);
-      this.slotSprites[index].setVisible(true);
+      this.slotSprites[index].setTexture(data.weaponTextureKey ?? 'sword-projectile').setVisible(true);
     } else {
       box.setStrokeStyle(1.5, 0x333344, 1);
       glow.setFillStyle(0x000000, 0);

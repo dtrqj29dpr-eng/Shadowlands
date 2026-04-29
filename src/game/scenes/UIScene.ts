@@ -60,7 +60,6 @@ export class UIScene extends Phaser.Scene {
 
     this.hud.update(
       player.getStats(),
-      resourceSystem.get('coin'),
       player.getSlotData(1),
       player.getSlotData(2),
       this.gameScene.isNearChest(),
